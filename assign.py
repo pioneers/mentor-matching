@@ -41,7 +41,8 @@ import sys
 
 
 if __name__ == "__main__":
-    with open(sys.argv[1], "r") as csvfile:
+    filename = sys.argv[1]
+    with open(filename, "r") as csvfile:
         reader = csv.reader(csvfile)
         header = next(reader)
         sections = header[1:]
@@ -51,40 +52,49 @@ if __name__ == "__main__":
         weights = []
         variables = []
         num_tas = 0
+
+        # Each row is the preferences for one mentor
         for row in reader:
-            name = row[0]
+            mentor_name = row[0]
             num_tas += 1
             edges = []
-            preferences[name] = {}
-            for i in range(len(row) - 1):
-                section = sections[i]
-                preferences[name][section] = row[i + 1]
-                weights.append(int(row[i + 1]))
+            preferences[mentor_name] = {}
 
-                # Currently broken with cvxpy version 0.4.10.
-                # See: https://github.com/cvxgrp/cvxpy/issues/364
-                # Follow the instructions in the above thread (edit your
-                # `site-packages`), or simply wait for a new version of cvxpy
-                # and upgrade your cvxpy version.
+            # Each column is a mentor's compatability with a school
+
+            num_cols = len(row) - 1
+            for section_index in range(num_cols):
+                section_name = sections[section_index]
+                mentor_school_compatability = row[section_index + 1]
+                preferences[mentor_name][section_name] = mentor_school_compatability
+                weights.append(int(mentor_school_compatability)
+
+                # A unique id as some names are common
+                mentor_identifier = "{}-{}".format(mentor_name, section_name)
 
                 # The variables are indicator variables for whether a TA is
                 # assigned to a particular section.
-                variable = cvx.Bool(name="{}-{}".format(name, section))
+                variable = cvx.Variable(1, boolean=True, name=mentor_identifier)
+
                 variables.append(variable)
                 edges.append(variable)
-                section_variables[i].append(variable)
+                section_variables[section_index].append(variable)
             # Add constraint that each TA is assigned one section.
             edges = np.array(edges)
             constraints.append(sum(edges) == 1)
+
         # Add constraint that each section is assigned one TA.
         for section in section_variables:
             constraints.append(sum(section) == 1)
+
         weights = np.array(weights)
         variables = np.array(variables)
         objective = cvx.Maximize(weights.dot(variables))
         problem = cvx.Problem(objective, constraints)
+
         error_msg = "The number of TAs does not match the number of sections!"
         assert num_tas == len(sections), error_msg
+
         print("Objective Value:", problem.solve())
         for variable in variables:
             if variable.value >= 0.5:
