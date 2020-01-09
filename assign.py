@@ -42,7 +42,6 @@ Note also that the constraints of type (5) are fairly resource-intensive, so eac
 """
 
 import cvxpy as cp
-from cvxpy.atoms.elementwise.maximum import maximum # allows us to create an expression that is the maximum of other expressions
 import utils
 from utils import Mentor, Team
 import csv

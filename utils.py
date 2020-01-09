@@ -7,7 +7,6 @@ The mentor spreadsheet should be formatted as follows:
 	X columns for which team types (eg new, small coach presence, etc) mentors want--numTeamTypes says how many columns
 	1 column for team(s) mentor would like, separated by multiItemDelimiter if there are multiple (blank if none)
 	1 column for team(s) mentor *must* be matched with, separated by multiItemDelimiter if there are multiple (blank if none)
-	1 column for other mentor(s) mentor would like, separated by multiItemDelimiter if there are multiple (blank if none)
 	1 column for other mentor(s) mentor *must* be matched with, separated by multiItemDelimiter if there are multiple (blank if none)
 	1 column for comfort mentoring alone
 	X columns for convenience of travel type--numTypesTransit says how many columns
@@ -65,12 +64,9 @@ Weights and other matching-related constants
 minNumMentors = 1 # minimum number of mentors that can be assigned to a team
 maxNumMentors = 2 # maximum number of mentors that can be assigned to a team
 
-# Variable types
-numVariableTypes = 4 # the number of different variable types in the convex optimization problem, as defined in assign.py
-
 # Availability overlap
 minMeetingTime = 60 # minimum number of minutes a mentor's / team's availabilities need to overlap in order to count
-totalMeetingTime = 120 # how many hours per week we want mentors to be with their teams
+totalMeetingTime = 120 # how many minutes per week we want mentors to be with their teams
 teamOverlapValue = 1 # how much each minute of availability overlap between a team and mentor is valued
 mentorOverlapValue = 0.5 # how much each minute of availability overlap between two mentors is valued
 noOverlapCost = 10000 # how much cost to incur if a mentor and team don't have any availabilities at the same times (should be very large)
@@ -79,12 +75,9 @@ partialOverlapCost = 100 # how much cost to incur if there is some overlap, but 
 # Team types
 teamTypeMatchValue = 50 # how much value to give if a team is of a type the mentor wants
 
-# Team / other mentor requests
+# Team requests
 teamRequestedValue = 2000 # how much value to give if a mentor requested to work with a team
 teamRequiredValue = 20000 # how much value to give if a mentor *must* be matched with this team
-mentorRequestedValue = 1000 # how much value to give if a mentor requested to work with another
-						    # this will be counted twice if both mentors request each other
-mentorRequiredValue = 20000 # how much value to give if a mentor *must* work with another
 
 # Mentoring alone
 aloneComfortCosts = [1000, 500, 200, 50, 10] # how much cost to incur for mentoring alone based on comfort level
@@ -95,13 +88,9 @@ transitConvenienceWeights = [0, 0.7, 1] # how much the value of an overlap shoul
 										# setting a weight to 0 will mean that we don't consider travel types of that convenience
 
 #Skills
-# all the values have been shifted up to make sure they are non-negative, since negative values can cause the program to not work as intended
-# this shouldn't affect the final matching
-skillMatchValues = [[30, 30, 30, 30, 30],	# how much value to give depending on how confident a mentor is in a skill and how much a team wants it
-					[20, 25, 30, 35, 40],	# each subarray corresponds to a team request level, from least important to most
-					[0, 20, 30, 40, 60]]	# each entry in a subarray corresponds to a mentor confidence level, from least to most
-skillSpreadValues = [20, 25, 30, 40, 60] # how much we should value the spread of skills between a pair of mentors if we don't know
-										 # what team they are assigned to
+skillMatchValues = [[0, 0, 0, 0, 0],		# how much value to give depending on how confident a mentor is in a skill and how much a team wants it
+					[-10, -5, 0, 5, 10],	# each subarray corresponds to a team request level, from least important to most
+					[-30, -10, 0, 10, 30]]	# each entry in a subarray corresponds to a mentor confidence level, from least to most
 
 
 """
@@ -117,8 +106,6 @@ attributes:
 						the list is empty if no teams are requested
 	teamsRequired: a list of the name(s) of team(s) a mentor must be assigned to one of
 						the list is empty if no teams are required
-	mentorsRequested: a list of the name(s) of other mentor(s) a mentor has requested to be teamed up with (given extra weight)
-						the list is empty if no other mentors are requested
 	mentorsRequired: a list of the name(s) of other mentor(s) a mentor must be paired with
 						the list is empty if no other mentors are required
 	comfortAlone: how comfortable the mentor is mentoring alone, as an element from aloneComfortLevels
@@ -174,11 +161,6 @@ class Mentor:
 		if dataRow[position] != "": # means the mentor is required by at least one team
 			# split up multiple team names, strip leading / trailing white space, and put into an array
 			self.teamsRequired = [name.strip() for name in dataRow[position].split(multiItemDelimiter)]
-		position += 1
-		self.mentorsRequested = []
-		if dataRow[position] != "": # means the mentor requested at least one other mentor
-			# split up multiple mentor names, strip leading / trailing white space, and put into an array
-			self.mentorsRequested = [name.strip() for name in dataRow[position].split(multiItemDelimiter)]
 		position += 1
 		self.mentorsRequired = []
 		if dataRow[position] != "": # means the mentor is required to be paired with at least one other mentor
@@ -305,68 +287,8 @@ class Team:
 
 
 """
-Functions for finding the value of a mentor-mentor-team group
-"""
-
-def getGroupSkillValue(mentor1, mentor2, team):
-	"""
-	Gets the value of a mentor pair for a team based off the spread of skills they have
-	For each skill, uses the more confident of the two
-	"""
-	value = 0
-	for skill in range(numSkills):
-		# find how much the team values a skill
-		teamRequest = team.skillRequests[skill]
-		teamIndex = skillRequestLevels.index(teamRequest)
-		# find value of mentor1's skill to the team
-		mentor1Confidence = mentor1.skillsConfidence[skill]
-		mentor1Index = skillConfidenceLevels.index(mentor1Confidence)
-		mentor1Value = skillMatchValues[teamIndex][mentor1Index]
-		# find the value of mentor2's skill to the team
-		mentor2Confidence = mentor2.skillsConfidence[skill]
-		mentor2Index = skillConfidenceLevels.index(mentor2Confidence)
-		mentor2Value = skillMatchValues[teamIndex][mentor2Index]
-		# take the larger value
-		value += max(mentor1Value, mentor2Value)
-	return value
-
-def getGroupCompatibility(mentor1, mentor2, team):
-	"""
-	Computes a "compatibility score" for a mentor-mentor-team group
-	"""
-	score = 0
-
-	# find value from requests / requirements
-	score += getMentorRequestedValue(mentor1, mentor2)
-
-	# find value from skill spread
-	score += getGroupSkillValue(mentor1, mentor2, team)
-
-	# add a benefit for these mentors not being alone
-	score += getMentorPairedValue(mentor1, mentor2)
-
-	return score
-
-
-"""
 Functions for finding the value of a mentor being alone with a team
 """
-
-def getMentorAloneSkillValue(mentor, team):
-	"""
-	Gets the value of a mentor for a team based off the skills they have
-	"""
-	value = 0
-	for skill in range(numSkills):
-		# find how much the team values the skill
-		teamRequest = team.skillRequests[skill]
-		teamIndex = skillRequestLevels.index(teamRequest)
-		# find value of the mentor's skill to the team
-		mentorConfidence = mentor.skillsConfidence[skill]
-		mentorIndex = skillConfidenceLevels.index(mentorConfidence)
-		mentorValue = skillMatchValues[teamIndex][mentorIndex]
-		value += mentorValue
-	return value
 
 def getMentorAloneCost(mentor):
 	"""
@@ -375,17 +297,6 @@ def getMentorAloneCost(mentor):
 	mentorComfort = mentor.comfortAlone
 	mentorIndex = aloneComfortLevels.index(mentorComfort)
 	return aloneComfortCosts[mentorIndex]
-
-def getMentorAloneCompatibility(mentor, team):
-	"""
-	Computes the compatibility for a mentor alone with a team
-	"""
-	score = 0
-
-	# find the value of skills
-	score += getMentorAloneSkillValue(mentor, team)
-
-	return score
 
 
 """
@@ -523,87 +434,6 @@ def getTeamCompatibility(mentor, team):
 
 	# find value from team requests / requirements
 	score += getTeamRequestedValue(mentor, team)
-
-	return score
-
-
-"""
-Functions for finding the value of a mentor-mentor pair, independent of the team
-"""
-
-def getMentorRequestedValue(mentor1, mentor2):
-	"""
-	Gets the value of a mentor pair based on requests / requirements (in either direction)
-	"""
-
-	value = 0
-	# check in mentor1 requested mentor2
-	for mentorName in mentor1.mentorsRequired:
-		if mentor2.isMatch(mentorName):
-			value += mentorRequiredValue
-	for mentorName in mentor1.mentorsRequested:
-		if mentor2.isMatch(mentorName):
-			value += mentorRequestedValue
-	# check if mentor2 requested mentor1
-	for mentorName in mentor2.mentorsRequired:
-		if mentor1.isMatch(mentorName):
-			value += mentorRequiredValue
-	for mentorName in mentor2.mentorsRequested:
-		if mentor1.isMatch(mentorName):
-			value += mentorRequestedValue
-
-	return value
-
-def getMentorPairedValue(mentor1, mentor2):
-	"""
-	Finds the benefit of these two mentors not being alone
-	This is just the cost that they would incur if they were alone (but now don't incur because they are paired)
-	"""
-	# find value for mentor1 not being alone
-	mentor1Comfort = mentor1.comfortAlone
-	mentor1Index = aloneComfortLevels.index(mentor1Comfort)
-	mentor1Value = aloneComfortCosts[mentor1Index]
-	# do the same for mentor2
-	mentor2Comfort = mentor2.comfortAlone
-	mentor2Index = aloneComfortLevels.index(mentor2Comfort)
-	mentor2Value = aloneComfortCosts[mentor2Index]
-	# add the two together to get total value
-	return mentor1Value + mentor2Value
-
-def getPairSkillValue(mentor1, mentor2):
-	"""
-	Gets the value of a mentor pair based off the spread of skills they have, independent of team
-	For each skill, uses the more confident of the two
-	This should incentivize pairing up mentors that have a wider spread of skills
-	"""
-	value = 0
-	for skill in range(numSkills):
-		# find value of mentor1's skill to the team
-		mentor1Confidence = mentor1.skillsConfidence[skill]
-		mentor1Index = skillConfidenceLevels.index(mentor1Confidence)
-		mentor1Value = skillSpreadValues[mentor1Index]
-		# find the value of mentor2's skill to the team
-		mentor2Confidence = mentor2.skillsConfidence[skill]
-		mentor2Index = skillConfidenceLevels.index(mentor2Confidence)
-		mentor2Value = skillSpreadValues[mentor2Index]
-		# take the larger value
-		value += max(mentor1Value, mentor2Value)
-	return value
-
-def getPairCompatibility(mentor1, mentor2):
-	"""
-	Gives a "compatibility score" for two mentors, independent of what team they are assigned to
-	"""
-	score = 0
-
-	# find value from requests / requirements
-	score += getMentorRequestedValue(mentor1, mentor2)
-
-	# find value from skill spread
-	score += getPairSkillValue(mentor1, mentor2)
-
-	# add a benefit for these mentors not being alone
-	score += getMentorPairedValue(mentor1, mentor2)
 
 	return score
 
