@@ -58,23 +58,26 @@ In cases where there are multiple columns (ie, availability, transit times, etc)
 
 
 ### How To Modify the Input Format
-* If you want to modify what the values in a column type should look like or how many columns of that type there should be, change the appropriate variable in `utils.py`, and update the lines in [Mentor Data Format](#mentor-data-format) and [Team Data Format](#team-data-format) as appropriate.  Note that all values are read from the csv as strings.
+* If you want to modify what the values in a column type should look like or how many columns of that type there should be, change the appropriate variable in `utils.py`, update the lines in [Mentor Data Format](#mentor-data-format) and [Team Data Format](#team-data-format), and update the format in `mentors-example.csv` and `teams-example.csv`.  Note that all values are read from the csv as strings.
 
 * If you want to remove a column type, delete
 	* The corresponding variables in `utils.py`.
 	* The lines in the `__init__` functions for the `Mentor` and `Team` classes (in `utils.py`) that read in that column type.
 	* The name and description of any corresponding attributes in the comments above the `Mentor` and `Team` classes.
-	* The corresponding lines in [Mentor Data Format](#mentor-data-format) and [Team Data Format](#team-data-format).
+	* The corresponding line(s) in [Mentor Data Format](#mentor-data-format) and [Team Data Format](#team-data-format).
+	* The corresponding column(s) in `mentors-example.csv` and `teams-example.csv`.
 
 * If you want to add a column type, add
 	* Any necessary new variables in `utils.py` (ie, number of columns, possible values, etc), with comments for what each is for.  Note that all values are read from the csv as strings.
 	* Lines in the `__init__` functions for the `Mentor` and `Team` classes (in `utils.py`) to read in that column type.
 	* The name and description of any corresponding attributes in the comments above the `Mentor` and `Team` classes.
-	* Corresponding lines in [Mentor Data Format](#mentor-data-format) and [Team Data Format](#team-data-format), as appropriate.
+	* Corresponding line(s) in [Mentor Data Format](#mentor-data-format) and [Team Data Format](#team-data-format).
+	* Corresponding column(s) in `mentors-example.csv` and `teams-example.csv`.
 
 * If you want to change the order of the columns,
 	* Rearrange the corresponding blocks in the `__init__` functions for the `Mentor` and `Team` classes (in `utils.py`).
 	* Rearrange the corresponding lines in [Mentor Data Format](#mentor-data-format) and [Team Data Format](#team-data-format).
+	* Rearrange the columns in `mentors-example.csv` and `teams-example.csv`.
 
 
 ### How To Change the Weights
