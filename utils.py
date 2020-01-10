@@ -1,28 +1,5 @@
 """
 Spreadsheet formatting constants
-
-The mentor spreadsheet should be formatted as follows:
-	1 column for mentor name
-	X columns for availability--fill in slotsPerDay based on how many columns correspond to each day
-	X columns for which team types (eg new, small coach presence, etc) mentors want--numTeamTypes says how many columns
-	1 column for team(s) mentor would like, separated by multiItemDelimiter if there are multiple (blank if none)
-	1 column for team(s) mentor *must* be matched with, separated by multiItemDelimiter if there are multiple (blank if none)
-	1 column for other mentor(s) mentor *must* be matched with, separated by multiItemDelimiter if there are multiple (blank if none)
-	1 column for comfort mentoring alone
-	X columns for convenience of travel type--numTypesTransit says how many columns
-	X columns for confidence in skills--numSkills says how many columns
-
-The team spreadsheet should be formatted as follows:
-	1 column for team name
-	X columns for availability--fill in slotsPerDay based on how many columns correspond to each day
-	X columns for which team type (eg new, small coach presence, etc) this is--numTeamTypes says how many columns
-	X columns for how long each travel method would take--numTypesTransit says how many columns (should be an integer)
-	X columns for skill requests in mentor--numSkills says how many columns
-
-There can be one or more header rows--set mentorHeaderRows and teamHeaderRows accordingly
-Make sure there are no commas in any of the data, or it may get parsed wrong!
-For columns that ask for the name of another mentor / of a school, make sure the names match exactly
-All values in the spreadsheet are read as strings -- make sure any constants you change / add reflect this
 """
 
 # Basic formatting

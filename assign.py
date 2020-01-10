@@ -1,44 +1,5 @@
 """
 Main script for running mentor matching
-Usage:
-	1) Create csv files called "mentors.csv" and "teams.csv", formatted as described in utils.py
-	2) Run this program
-Three files will be created:
-	1) "matching.csv", which contains the matching from mentors to teams (todo)
-	2) "team_compatibility.csv", which contains the compatibility matrix between teams and mentors (todo)
-	3) "mentor_compatibility.csv", which contains the compatibility matrix for pairs of mentors (todo)
-
-
-Description of the convex optimization problem:
-	Variables:
-		(1) One boolean variable for each mentor-team pair, representing if that mentor is paired with that team and is alone
-		(2) One boolean variable for each mentor-team pair, representing if that mentor AND at least one other are paired with that team
-	Constraints:
-		(1) The sum of a team's type (2) variables plus twice the sum of its type (1) variables must be at least 2
-				This ensures that if only one mentor is assigned to the team, the corresponding type (1) variable must be active instead of the type (2)
-		(2) The sum of a mentor's type (1) and (2) variables is exactly 1
-				This ensures that a mentor gets matched with exactly one team
-		(3) The sum of a team's type (1) and (2) variables is between minNumMentors and maxNumMentors
-				This ensures that a team gets an appropriate number of mentors
-		(4) For every mentor-mentor pair that is required to be together, the sum of all their type (1) variables must be zero
-				This ensures that mentors that are supposed to be paired don't end up alone
-		(5) For every mentor-mentor pair that is required to be together, the sum over the teams of the squared differences between 
-			the type (2) variables for these two mentors must be zero.
-				This ensures that the mentors will be assigned together.  If they are assigned to two different teams, the two corresponding
-				squared differences will be 1; if they are assigned to the same team, all differences will be zero.  This all assumes that they
-				aren't assigned using type (1) variables, which constraint type (4) ensures.
-	Objective Function Terms:
-		(1) For each type (1) variable, score the compatibility for that mentor-team pair minus the cost for the mentor being alone
-		(2) For each type (2) variable, score the compatibility for that mentor-team pair
-
-Note that based on how the constraints are set up, there is nothing to stop the program from using type (1) variables when there are actually
-	multiple mentors assigned to that team.  However, as it is currently set up, you can only incur an extra cost by doing that, so there's no
-	reason for the program to do so.  But this does mean that we can only ever have solo-mentoring incur a cost--we can never treat it as
-	adding value without changing the structure of the constraints.
-
-Note also that the constraints of type (5) are fairly resource-intensive, so each mentor pair we require to be paired adds approximately
-	4 seconds to the computation time (from a baseline of about half a second if there are no such pairs).  So we should try to minimize
-	the number of pairs we require to be together where possible.
 """
 
 import cvxpy as cp
