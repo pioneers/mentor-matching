@@ -37,6 +37,7 @@ The columns should be organized as follows:
 * 1 column for team(s) this mentor would like to be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must appear exactly as they do in `teams.csv`.
 * 1 column for team(s) this mentor *must* be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must appear exactly as they do in `teams.csv`.
 * 1 column for other mentor(s) mentor *must* be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must be exactly the same as the name given in the first column of the other mentor(s)' row.
+	* Note that the constraints of this type can add significantly to the computation time, so they should be used sparingly.
 * 1 column for comfort mentoring alone (must be a number from 1 to 5, with 5 as most confident).
 * 5 columns for convenience of different transit types (each must be "Not possible", "Inconvenient", or "Convenient").
 * 5 columns for confidence in skills (each must be "Not Confident", "Somewhat", "Neutral", "Confident", or "Very Confident").
@@ -112,7 +113,7 @@ Constraints:
 2. The sum of a mentor's type 1 and 2 variables is exactly 1.  This ensures that a mentor gets matched with exactly one team.
 3. The sum of a team's type 1 and 2 variables is between 1 and 2.  This ensures that a team gets an appropriate number of mentors.
 4. For every pair of mentors that is required to be together, the sum of all their type 1 variables must be zero.  This ensures that mentors who are supposed to be paired together don't end up alone.
-5. For every pair of mentors that is required to be together, the sum over the teams of the squared differences between the type 2 variables for those two mentors and that team must be zero.  This ensures that the mentors will be assigned together.  If they are assigned to two different teams, the two corresponding squared differences will be 1 (so the sum will be 2); if they are assigned to the same team, all differences (and hence also the sum) will be zero.  This constraint assumes that neither mentor is assigned using type 1 variables, which the constraints of type 4 ensure.
+5. Assign an (arbitrary) unique multiplier to each team.  For every pair of mentors that must be matched, the sum over the teams of the team's multiplier times the difference in the type 2 variables for those two mentors and that team must equal zero.  This ensures that these two mentors will be paired.  If they are paired, all the differences will be zero; if they are not paired, one of the differences will be +1 and one will be -1, so since the multipliers for each team are different, the overall summation will be non-zero.  This assumes that neither mentor is assigned using type 1 variables, which the type 4 constraints guarantee.
 
 Terms in the Objective Function:  
 1. For each type 1 variable, we have (the value of that mentor-team matching minus the cost of the mentor being alone) times the variable.
@@ -126,5 +127,3 @@ Note that based on how the constraints are set up, there is nothing to stop the 
 1. Instead of outputting the matching to the terminal, output to a csv.
 
 2. Output a csv file with all the mentor-team compatibilities in a matrix.
-
-3. Try changing the type 5 constraints to make them less resource-intensive.
