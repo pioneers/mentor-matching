@@ -123,6 +123,4 @@ Note that based on how the constraints are set up, there is nothing to stop the 
 
 ### TODOs
 
-1. Instead of outputting the matching to the terminal, output to a csv.
-
-2. Output a csv file with all the mentor-team compatibilities in a matrix.
+1. Output a csv file with all the mentor-team compatibilities in a matrix.
