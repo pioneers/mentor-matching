@@ -86,13 +86,10 @@ for mentor1 in mentors:
 		if mentor1.mustPair(mentor2) or mentor2.mustPair(mentor1):
 			# these mentors are required to be paired, so create the constraints for them
 			constraints.append(sum(varByMentor[(1, mentor1)]) + sum(varByMentor[(1, mentor2)]) == 0) # type (4) constraint
-			diffTerms = [] # terms in the summation of differences for this constraint
 			for team in teams:
-				teamNum = teams.index(team) # we will use this as the multiplier for this team
 				mentor1Var = varByPair[(2, mentor1, team)][0] # get type (2) variables for these mentors and this team
 				mentor2Var = varByPair[(2, mentor2, team)][0] # there will only be one variable in each list, so extract it
-				diffTerms.append(teamNum * (mentor1Var - mentor2Var))
-			constraints.append(sum(diffTerms) == 0) # type (5) constraint
+				constraints.append(mentor1Var - mentor2Var >= 0) # type (5) constraint
 
 print("Creating objective function...", flush = True)
 objectiveTerms = [] # list of terms that will be added together to make the objective function
