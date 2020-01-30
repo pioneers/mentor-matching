@@ -24,7 +24,7 @@ two sections.  See `mentors-example.csv` and `teams-example.csv` for example dat
 
 3. Ensure that there are no commas in any of the data.  Commas may cause the csv to be parsed incorrectly.
 
-4. Run `assign.py`.  This will output the matching in the terminal window.
+4. Run `assign.py`.  The matching will be output to `matching.csv`; a mentor-team compatibility matrix will be output to `compatibility.csv`.
 
 
 ### Mentor Data Format
@@ -122,5 +122,3 @@ Note that based on how the constraints are set up, there is nothing to stop the 
 
 
 ### TODOs
-
-1. Output a csv file with all the mentor-team compatibilities in a matrix.

@@ -30,6 +30,20 @@ with open("teams.csv") as teamFile:
 	for dataRow in teamReader:
 		teams.append(Team(dataRow)) # create the team object
 
+print("Creating compatibility file...", flush = True)
+with open('compatibility.csv', 'w', newline = '') as compatFile:
+	compatWriter = csv.writer(compatFile)
+	firstRow = ['Name'] # first row is a header that gives the name of each team
+	for team in teams:
+		firstRow.append(team.name)
+	compatWriter.writerow(firstRow)
+	for mentor in mentors:
+		mentorRow = [mentor.name] # contains the name of this mentor + compatibility for each team
+		for team in teams:
+			mentorRow.append(str(utils.getTeamCompatibility(mentor, team)))
+		compatWriter.writerow(mentorRow)
+print("Compatibilities output to compatibility.csv")
+
 print("Creating optimization variables...", flush = True)
 variables = [] # list of all variables
 varByType = {} # map from variable type to list of variables of that type
