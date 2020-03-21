@@ -12,7 +12,7 @@ import time # for testing purposes
 
 print("Process started!  Reading mentor file...", flush = True)
 mentors = []
-with open("mentors.csv") as mentorFile:
+with open("data/mentors.csv") as mentorFile:
 	mentorReader = csv.reader(mentorFile)
 	# remove header rows, if any
 	for _ in range(utils.mentorHeaderRows):
@@ -22,7 +22,7 @@ with open("mentors.csv") as mentorFile:
 
 print("Reading team file...", flush = True)
 teams = []
-with open("teams.csv") as teamFile:
+with open("data/teams.csv") as teamFile:
 	teamReader = csv.reader(teamFile)
 	# remove header rows, if any
 	for _ in range(utils.teamHeaderRows):
