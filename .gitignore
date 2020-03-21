@@ -6,3 +6,4 @@ teams.csv
 matching.csv
 compatibility.csv
 .vscode/
+*.pyc
