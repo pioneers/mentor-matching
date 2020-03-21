@@ -1,6 +1,7 @@
-import unittest
-from utils import Mentor
 import csv
+import unittest
+
+from utils import Mentor
 
 
 class TestParsingMentor(unittest.TestCase):
@@ -13,6 +14,22 @@ class TestParsingMentor(unittest.TestCase):
         mentor = Mentor(processed_line)
 
         self.assertEqual(mentor.name, "Mavericl")
+        self.assertEqual(mentor.teamTypeRequests, [1, 1, 0, 0])
+        self.assertEqual(mentor.teamsRequested, [])
+        self.assertEqual(mentor.teamsRequired, [])
+        self.assertEqual(mentor.mentorsRequired, ["Jessica"])
+        self.assertEqual(mentor.comfortAlone, "1")
+        self.assertEqual(
+            mentor.transitConveniences,
+            [
+                "Inconvenient",
+                "Convenient",
+                "Convenient",
+                "Not possible",
+                "Not possible",
+            ],
+        )
+        self.assertEqual(mentor.skillsConfidence, ["Somewhat", "Very Confident"])
 
 
 if __name__ == "__main__":
