@@ -5,10 +5,10 @@ import csv
 import time  # for testing purposes
 
 import cvxpy as cp
-from utils import Mentor
-from utils import Team
 
 from mentor_matching import utils
+from mentor_matching.utils import Mentor
+from mentor_matching.utils import Team
 
 
 print("Process started!  Reading mentor file...", flush=True)
