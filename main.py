@@ -7,46 +7,23 @@ import time  # for testing purposes
 import cvxpy as cp
 
 from mentor_matching import utils
+from mentor_matching.utils import create_team_compatability_data_frame
 from mentor_matching.utils import Mentor
+from mentor_matching.utils import mentors_from_file
 from mentor_matching.utils import Team
-
+from mentor_matching.utils import teams_from_file
 
 print("Process started!  Reading mentor file...", flush=True)
-mentors = []
 with open("data/mentors-example.csv") as mentorFile:
-    mentorReader = csv.reader(mentorFile)
-    # remove header rows, if any
-    for _ in range(utils.mentorHeaderRows):
-        next(mentorReader)  # just read the row and throw it away
-    for dataRow in mentorReader:
-        mentors.append(
-            Mentor(dataRow)
-        )  # create a new mentor object based on each row of data
+    mentors = mentors_from_file(mentorFile)
 
 print("Reading team file...", flush=True)
-teams = []
-with open("data/teams-example.csv") as teamFile:
-    teamReader = csv.reader(teamFile)
-    # remove header rows, if any
-    for _ in range(utils.teamHeaderRows):
-        next(teamReader)  # throw out header rows
-    for dataRow in teamReader:
-        teams.append(Team(dataRow))  # create the team object
+with open("data/teams-example.csv") as team_file:
+    teams = teams_from_file(team_file)
 
 print("Creating compatibility file...", flush=True)
-with open("compatibility.csv", "w", newline="") as compatFile:
-    compatWriter = csv.writer(compatFile)
-    firstRow = ["Name"]  # first row is a header that gives the name of each team
-    for team in teams:
-        firstRow.append(team.name)
-    compatWriter.writerow(firstRow)
-    for mentor in mentors:
-        mentorRow = [
-            mentor.name
-        ]  # contains the name of this mentor + compatibility for each team
-        for team in teams:
-            mentorRow.append(str(utils.getTeamCompatibility(mentor, team)))
-        compatWriter.writerow(mentorRow)
+compatability_data_frame = create_team_compatability_data_frame(mentors, teams)
+compatability_data_frame.to_csv("compatability.csv")
 print("Compatibilities output to compatibility.csv")
 
 print("Creating optimization variables...", flush=True)
