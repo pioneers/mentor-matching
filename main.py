@@ -119,36 +119,11 @@ def main():
         + "\nFinal objective value of "
         + str(prob.value)
     )
-    teamByMentor = {}  # mapping from a mentor to the team they are assigned to
-    mentorsByTeam = {}  # mapping from a team to a list of mentors assigned to that team
-    for team in teams:
-        mentorsByTeam[
-            team
-        ] = []  # initialize all of these to empty lists so we can use append freely
-    for variable in var_set.variables:
-        if variable.value > 0.5:
-            _, varMentor, varTeam = var_set.groupByVar[variable]
-            teamByMentor[varMentor] = varTeam
-            mentorsByTeam[varTeam].append(varMentor)
-    with open("matching.csv", "w", newline="") as matchFile:
-        matchWriter = csv.writer(matchFile)
-        matchWriter.writerow(["Mentor Name", "Team Name", "Other Mentor(s)"])
-        for mentor in mentors:
-            team = teamByMentor[mentor]
-            otherMentors = mentorsByTeam[team][
-                :
-            ]  # make sure this is a copy and not a pointer to the original
-            otherMentors.remove(mentor)  # otherwise this line will cause problems
-            otherMentorsString = ""  # will contain all the other mentors assigned to this team, separated by semicolons
-            if len(otherMentors) == 0:
-                otherMentorsString = "N/A"
-            else:
-                otherMentorsString = otherMentors[0].name
-                for omIndex in range(1, len(otherMentors)):
-                    otherMentorsString += "; " + otherMentors[omIndex].name
-            matchWriter.writerow([mentor.name, team.name, otherMentorsString])
+
+    with open("matching.csv", "w", newline="") as match_file:
+        var_set.write_match(match_file)
     print("Matching output to matching.csv")
-    return teamByMentor
+    return var_set.team_by_mentor()
 
 
 if __name__ == "__main__":
