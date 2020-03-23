@@ -8,6 +8,7 @@ import cvxpy as cp
 
 from mentor_matching import utils
 from mentor_matching.constraint_set import ConstraintSet
+from mentor_matching.objective_set import ObjectiveSet
 from mentor_matching.utils import create_team_compatability_data_frame
 from mentor_matching.utils import mentors_from_file
 from mentor_matching.utils import teams_from_file
@@ -36,29 +37,12 @@ def main():
     constraint_set = ConstraintSet(var_set, mentors, teams,)
 
     print("Creating objective function...", flush=True)
-    objectiveTerms = (
-        []
-    )  # list of terms that will be added together to make the objective function
-    # create type (1) terms
-    for var1 in var_set.varByType[VariableType.SoloMentor]:
-        _, varMentor, varTeam = var_set.groupByVar[
-            var1
-        ]  # figure out which mentor and team this variable is for
-        value = utils.getTeamCompatibility(
-            varMentor, varTeam
-        ) - utils.getMentorAloneCost(varMentor)
-        objectiveTerms.append(value * var1)
-    # create type (2) terms
-    for var2 in var_set.varByType[VariableType.GroupMentor]:
-        _, varMentor, varTeam = var_set.groupByVar[
-            var2
-        ]  # figure out which mentor and team this variable is for
-        value = utils.getTeamCompatibility(varMentor, varTeam)
-        objectiveTerms.append(value * var2)
-    objective = sum(objectiveTerms)
+    objective_set = ObjectiveSet(var_set)
 
     print("Creating problem...", flush=True)
-    prob = cp.Problem(cp.Maximize(objective), constraint_set.constraints)
+    prob = cp.Problem(
+        cp.Maximize(objective_set.objective()), constraint_set.constraints
+    )
 
     print("Solving problem...", flush=True)
     startTime = time.time()
