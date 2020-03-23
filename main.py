@@ -8,10 +8,10 @@ import cvxpy as cp
 
 from mentor_matching import utils
 from mentor_matching.utils import create_team_compatability_data_frame
-from mentor_matching.utils import Mentor
 from mentor_matching.utils import mentors_from_file
-from mentor_matching.utils import Team
 from mentor_matching.utils import teams_from_file
+from mentor_matching.variable_set import VariableSet
+from mentor_matching.variable_set import VariableType
 
 
 def main():
@@ -29,57 +29,24 @@ def main():
     print("Compatibilities output to compatibility.csv")
 
     print("Creating optimization variables...", flush=True)
-    variables = []  # list of all variables
-    varByType = {}  # map from variable type to list of variables of that type
-    varByMentor = (
-        {}
-    )  # map from (variable type, mentor) to list of variables of that type for that mentor
-    varByTeam = (
-        {}
-    )  # map from (variable type, team) to list of variables of that type for that team
-    varByPair = (
-        {}
-    )  # map from (variable type, mentor, team) to list of variable of that type for that team and mentor
-    groupByVar = (
-        {}
-    )  # map from a variable to the (variable type, mentor, team) corresponding to it
-    # initialize varByType, varByMentor, varByTeam, and varByPair with empty lists to prevent KeyErrors later
-    for varType in [1, 2]:
-        varByType[varType] = []
-        for mentor in mentors:
-            varByMentor[(varType, mentor)] = []
-            for team in teams:
-                varByPair[(varType, mentor, team)] = []
-        for team in teams:
-            varByTeam[(varType, team)] = []
-    # create variables
-    for varType in [1, 2]:
-        for mentor in mentors:
-            for team in teams:
-                newVar = cp.Variable(boolean=True)
-                variables.append(newVar)
-                varByType[varType].append(newVar)
-                varByMentor[(varType, mentor)].append(newVar)
-                varByTeam[(varType, team)].append(newVar)
-                varByPair[(varType, mentor, team)].append(newVar)
-                groupByVar[newVar] = (varType, mentor, team)
+    var_set = VariableSet(mentors, teams)
 
     print("Creating constraints...", flush=True)
     constraints = []
     # create type (1) constraints
     for team in teams:
-        typeOneVars = varByTeam[(1, team)]
-        typeTwoVars = varByTeam[(2, team)]
+        typeOneVars = var_set.varByTeam[(VariableType.SoloMentor, team)]
+        typeTwoVars = var_set.varByTeam[(VariableType.GroupMentor, team)]
         constraints.append(sum(typeTwoVars) + (2 * sum(typeOneVars)) >= 2)
     # create type (2) constraints
     for mentor in mentors:
-        typeOneVars = varByMentor[(1, mentor)]
-        typeTwoVars = varByMentor[(2, mentor)]
+        typeOneVars = var_set.varByMentor[(VariableType.SoloMentor, mentor)]
+        typeTwoVars = var_set.varByMentor[(VariableType.GroupMentor, mentor)]
         constraints.append(sum(typeOneVars) + sum(typeTwoVars) == 1)
     # create type (3) constraints
     for team in teams:
-        typeOneVars = varByTeam[(1, team)]
-        typeTwoVars = varByTeam[(2, team)]
+        typeOneVars = var_set.varByTeam[(VariableType.SoloMentor, team)]
+        typeTwoVars = var_set.varByTeam[(VariableType.GroupMentor, team)]
         constraints.append(sum(typeOneVars) + sum(typeTwoVars) >= utils.minNumMentors)
         constraints.append(sum(typeOneVars) + sum(typeTwoVars) <= utils.maxNumMentors)
     # create type (4) and (5) constraints
@@ -92,26 +59,31 @@ def main():
             if mentor1.mustPair(mentor2) or mentor2.mustPair(mentor1):
                 # these mentors are required to be paired, so create the constraints for them
                 constraints.append(
-                    sum(varByMentor[(1, mentor1)]) + sum(varByMentor[(1, mentor2)]) == 0
+                    (
+                        sum(var_set.varByMentor[(VariableType.SoloMentor, mentor1)])
+                        + sum(var_set.varByMentor[(VariableType.SoloMentor, mentor2)])
+                        == 0
+                    )
                 )  # type (4) constraint
                 for team in teams:
-                    mentor1Var = varByPair[(2, mentor1, team)][
-                        0
-                    ]  # get type (2) variables for these mentors and this team
-                    mentor2Var = varByPair[(2, mentor2, team)][
-                        0
-                    ]  # there will only be one variable in each list, so extract it
-                    constraints.append(
-                        mentor1Var - mentor2Var >= 0
-                    )  # type (5) constraint
+                    # get type (2) variables for these mentors and this team
+                    mentor1Var = var_set.varByPair[
+                        (VariableType.GroupMentor, mentor1, team)
+                    ]
+                    # there will only be one variable in each list, so extract it
+                    mentor2Var = var_set.varByPair[
+                        (VariableType.GroupMentor, mentor2, team)
+                    ]
+                    # type (5) constraint
+                    constraints.append(mentor1Var - mentor2Var >= 0)
 
     print("Creating objective function...", flush=True)
     objectiveTerms = (
         []
     )  # list of terms that will be added together to make the objective function
     # create type (1) terms
-    for var1 in varByType[1]:
-        _, varMentor, varTeam = groupByVar[
+    for var1 in var_set.varByType[VariableType.SoloMentor]:
+        _, varMentor, varTeam = var_set.groupByVar[
             var1
         ]  # figure out which mentor and team this variable is for
         value = utils.getTeamCompatibility(
@@ -119,8 +91,8 @@ def main():
         ) - utils.getMentorAloneCost(varMentor)
         objectiveTerms.append(value * var1)
     # create type (2) terms
-    for var2 in varByType[2]:
-        _, varMentor, varTeam = groupByVar[
+    for var2 in var_set.varByType[VariableType.GroupMentor]:
+        _, varMentor, varTeam = var_set.groupByVar[
             var2
         ]  # figure out which mentor and team this variable is for
         value = utils.getTeamCompatibility(varMentor, varTeam)
@@ -153,9 +125,9 @@ def main():
         mentorsByTeam[
             team
         ] = []  # initialize all of these to empty lists so we can use append freely
-    for variable in variables:
+    for variable in var_set.variables:
         if variable.value > 0.5:
-            _, varMentor, varTeam = groupByVar[variable]
+            _, varMentor, varTeam = var_set.groupByVar[variable]
             teamByMentor[varMentor] = varTeam
             mentorsByTeam[varTeam].append(varMentor)
     with open("matching.csv", "w", newline="") as matchFile:

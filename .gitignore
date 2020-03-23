@@ -7,3 +7,4 @@ matching.csv
 compatibility.csv
 .vscode/
 *.pyc
+.mypy_cache/

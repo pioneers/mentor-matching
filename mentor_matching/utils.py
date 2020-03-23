@@ -163,31 +163,31 @@ skillMatchValues = [
 class representing a mentor
 stores information about a mentor from the spreadsheet and contains various helper functions specific to mentors
 attributes:
-	name: the mentor's name as a string
-	availability: the mentor's availability as a boolean matrix
-					each sublist corresponds to one day, and has a boolean value for each slot
-	teamTypeRequests: the mentor's requests for team types, as a boolean list
-						each entry corresponds to one team type
-	teamsRequested: a list of the name(s) of team(s) a mentor has requested to be on (given extra weight)
-						the list is empty if no teams are requested
-	teamsRequired: a list of the name(s) of team(s) a mentor must be assigned to one of
-						the list is empty if no teams are required
-	mentorsRequired: a list of the name(s) of other mentor(s) a mentor must be paired with
-						the list is empty if no other mentors are required
-	comfortAlone: how comfortable the mentor is mentoring alone, as an element from aloneComfortLevels
-	transitConveniences: how convenient each transit type is, as a list of elements from transitConvenienceLevels
-	skillsConfidence: how confident the mentor is in each skill, as a list of elements from skillConfidenceLevels
+    name: the mentor's name as a string
+    availability: the mentor's availability as a boolean matrix
+                    each sublist corresponds to one day, and has a boolean value for each slot
+    teamTypeRequests: the mentor's requests for team types, as a boolean list
+                        each entry corresponds to one team type
+    teamsRequested: a list of the name(s) of team(s) a mentor has requested to be on (given extra weight)
+                        the list is empty if no teams are requested
+    teamsRequired: a list of the name(s) of team(s) a mentor must be assigned to one of
+                        the list is empty if no teams are required
+    mentorsRequired: a list of the name(s) of other mentor(s) a mentor must be paired with
+                        the list is empty if no other mentors are required
+    comfortAlone: how comfortable the mentor is mentoring alone, as an element from aloneComfortLevels
+    transitConveniences: how convenient each transit type is, as a list of elements from transitConvenienceLevels
+    skillsConfidence: how confident the mentor is in each skill, as a list of elements from skillConfidenceLevels
 """
 
 
 class Mentor:
     def __init__(self, dataRow):
         """
-		Initialize a mentor from a spreadsheet row
-		dataRow should contain all the data about a mentor, formatted as described in the comments at the top of this file
-			all entries should be strings (as is output by a csv reader), otherwise behavior is undefined
-		will raise an exception if data is not formatted correctly
-		"""
+        Initialize a mentor from a spreadsheet row
+        dataRow should contain all the data about a mentor, formatted as described in the comments at the top of this file
+            all entries should be strings (as is output by a csv reader), otherwise behavior is undefined
+        will raise an exception if data is not formatted correctly
+        """
         position = 0  # what position in dataRow we are looking at right now
 
         # get name
@@ -207,12 +207,7 @@ class Mentor:
                     dayAvailability.append(0)
                 else:
                     raise ValueError(
-                        "Got invalid value "
-                        + dataRow[position]
-                        + " for "
-                        + self.name
-                        + "'s availability in column "
-                        + str(position + 1)
+                        f"Got invalid value {dataRow[position]} for {self.name}'s availability in column {position + 1}"
                     )
                 position += 1
             self.availability.append(dayAvailability)
@@ -305,17 +300,17 @@ class Mentor:
 
     def isMatch(self, otherName):
         """
-		Returns whether or not this mentor matches the input name
-		Comparison ignores spaces and capitalization, but otherwise the names must match exactly
-		"""
+        Returns whether or not this mentor matches the input name
+        Comparison ignores spaces and capitalization, but otherwise the names must match exactly
+        """
         ownName = self.name.replace(" ", "").lower()
         otherName = otherName.replace(" ", "").lower()
         return ownName == otherName
 
     def mustPair(self, otherMentor):
         """
-		Returns whether or otherMentor appears in this mentor's list of mentors they are required to be matched with
-		"""
+        Returns whether or otherMentor appears in this mentor's list of mentors they are required to be matched with
+        """
         for name in self.mentorsRequired:
             if otherMentor.isMatch(name):
                 return True
@@ -339,24 +334,24 @@ def mentors_from_file(mentors_file: IO[str]) -> List[Mentor]:
 class representing a team
 stores information about a team from the spreadsheet and contains various helper functions specific to teams
 attributes:
-	name: the team's name as a string
-	availability: the team's availability as a boolean matrix
-					each sublist corresponds to one day, and has a boolean value for each slot
-	teamTypes: whether the team falls into each team type, as a boolean list
-						each entry corresponds to one team type
-	transitTimes: how long each transit type would take in minutes, as a list integers
-	skillRequests: how much the team wants each skill, as a list of elements from skillRequestLevels
+    name: the team's name as a string
+    availability: the team's availability as a boolean matrix
+                    each sublist corresponds to one day, and has a boolean value for each slot
+    teamTypes: whether the team falls into each team type, as a boolean list
+                        each entry corresponds to one team type
+    transitTimes: how long each transit type would take in minutes, as a list integers
+    skillRequests: how much the team wants each skill, as a list of elements from skillRequestLevels
 """
 
 
 class Team:
     def __init__(self, dataRow):
         """
-		Initialize a team from a spreadsheet row
-		dataRow should contain all the data about a team, formatted as described in the comments at the top of this file
-			all entries should be strings (as is output by a csv reader), otherwise behavior is undefined
-		will raise an exception if data is not formatted correctly
-		"""
+        Initialize a team from a spreadsheet row
+        dataRow should contain all the data about a team, formatted as described in the comments at the top of this file
+            all entries should be strings (as is output by a csv reader), otherwise behavior is undefined
+        will raise an exception if data is not formatted correctly
+        """
         position = 0  # what position in dataRow we are looking at right now
 
         # get name
@@ -439,9 +434,9 @@ class Team:
 
     def isMatch(self, otherName):
         """
-		Returns whether or not this team matches the input name
-		Comparison ignores spaces and capitalization, but otherwise the names must match exactly
-		"""
+        Returns whether or not this team matches the input name
+        Comparison ignores spaces and capitalization, but otherwise the names must match exactly
+        """
         ownName = self.name.replace(" ", "").lower()
         otherName = otherName.replace(" ", "").lower()
         return ownName == otherName
@@ -465,8 +460,8 @@ Functions for finding the value of a mentor being alone with a team
 
 def getMentorAloneCost(mentor):
     """
-	Finds the cost of this mentor being alone based on their comfortability with that
-	"""
+    Finds the cost of this mentor being alone based on their comfortability with that
+    """
     mentorComfort = mentor.comfortAlone
     mentorIndex = aloneComfortLevels.index(mentorComfort)
     return aloneComfortCosts[mentorIndex]
@@ -479,19 +474,19 @@ Functions for finding the value of a mentor-team pair, independent of any co-men
 
 def getTeamOverlapValue(mentor, team, transitType):
     """
-	Measures how well the availability of a mentor's and team's availabilities overlap
-	Assumes the mentor uses input transit type, which is an integer in range(numTransitTypes)
-	Finds the total amount of overlap (minus travel time for the mentor), but an overlap must be for at least minMeetingTime to count
-	Value is then total overlap time multiplied by teamOverlapValue and the transit convenience weight for that mentor and transit type
-	If the transit type weight is zero for the mentor, returns -noOverlapCost
-	If total overlap is zero, returns -noOverlapCost
-	If total overlap is non-zero but less than totalMeetingTime, charges partialOverlapCost to the value (after weighting)
+    Measures how well the availability of a mentor's and team's availabilities overlap
+    Assumes the mentor uses input transit type, which is an integer in range(numTransitTypes)
+    Finds the total amount of overlap (minus travel time for the mentor), but an overlap must be for at least minMeetingTime to count
+    Value is then total overlap time multiplied by teamOverlapValue and the transit convenience weight for that mentor and transit type
+    If the transit type weight is zero for the mentor, returns -noOverlapCost
+    If total overlap is zero, returns -noOverlapCost
+    If total overlap is non-zero but less than totalMeetingTime, charges partialOverlapCost to the value (after weighting)
 
-	Random note: there's an adversarial input to this where a small gap in the team's availability between two overlaps, combined
-					with a long travel time could cause the value to be overreported by giving a slot in the second overlap both
-					to that overlap and to travel time after the first overlap.  But I don't think this will actually come up
-					in practice, so I don't think it's worth futzing with the code to try to fix that.
-	"""
+    Random note: there's an adversarial input to this where a small gap in the team's availability between two overlaps, combined
+                    with a long travel time could cause the value to be overreported by giving a slot in the second overlap both
+                    to that overlap and to travel time after the first overlap.  But I don't think this will actually come up
+                    in practice, so I don't think it's worth futzing with the code to try to fix that.
+    """
     totalOverlap = 0
     for day in range(7):
         # at the beginning of a day, reset all counters for contiguous blocks
@@ -574,12 +569,12 @@ def getTeamOverlapValue(mentor, team, transitType):
 
 def getTeamTypeValue(mentor, team):
     """
-	Get the value for pairing a mentor with a team based on what type of team the mentor wants / what type the team is
+    Get the value for pairing a mentor with a team based on what type of team the mentor wants / what type the team is
 
-	Random thought: as it is set up right now, it gives a flat value if there are any matches regardless of how many there are
-					based off our previous system, this makes sense since each team can only be one type
-					but in principle we could have multiple non-exclusive descriptors for a team, and give more value if there are more matches
-	"""
+    Random thought: as it is set up right now, it gives a flat value if there are any matches regardless of how many there are
+                    based off our previous system, this makes sense since each team can only be one type
+                    but in principle we could have multiple non-exclusive descriptors for a team, and give more value if there are more matches
+    """
     for teamType in range(numTeamTypes):
         if mentor.teamTypeRequests[teamType] and team.teamTypes[teamType]:
             return teamTypeMatchValue
@@ -588,10 +583,10 @@ def getTeamTypeValue(mentor, team):
 
 def getTeamRequestedValue(mentor, team):
     """
-	If the mentor must be matched with the team, returns teamRequiredValue
-	If the mentor just requested the team, returns teamRequestedValue
-	Else returns 0
-	"""
+    If the mentor must be matched with the team, returns teamRequiredValue
+    If the mentor just requested the team, returns teamRequestedValue
+    Else returns 0
+    """
     for teamName in mentor.teamsRequired:
         if team.isMatch(teamName):
             return teamRequiredValue
@@ -603,9 +598,9 @@ def getTeamRequestedValue(mentor, team):
 
 def getTeamCompatibility(mentor: Mentor, team: Team) -> int:
     """
-	Gets a "compatibility score" between a mentor and a team (used as the weight in the later optimization problem)
-	Uses the functions defined above to compute different aspects of the score
-	"""
+    Gets a "compatibility score" between a mentor and a team (used as the weight in the later optimization problem)
+    Uses the functions defined above to compute different aspects of the score
+    """
     score = 0
 
     # find value from overlapping availabilities
@@ -630,7 +625,7 @@ def create_team_compatability_data_frame(
 ) -> pd.DataFrame:
     matrix: List[List[int]] = []
     for mentor in mentors:
-        matrix.append([str(getTeamCompatibility(mentor, team)) for team in teams])
+        matrix.append([getTeamCompatibility(mentor, team) for team in teams])
 
     return pd.DataFrame(
         matrix,
