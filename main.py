@@ -7,6 +7,7 @@ import time  # for testing purposes
 import cvxpy as cp
 
 from mentor_matching import utils
+from mentor_matching.constraint_set import ConstraintSet
 from mentor_matching.utils import create_team_compatability_data_frame
 from mentor_matching.utils import mentors_from_file
 from mentor_matching.utils import teams_from_file
@@ -32,50 +33,7 @@ def main():
     var_set = VariableSet(mentors, teams)
 
     print("Creating constraints...", flush=True)
-    constraints = []
-    # create type (1) constraints
-    for team in teams:
-        typeOneVars = var_set.varByTeam[(VariableType.SoloMentor, team)]
-        typeTwoVars = var_set.varByTeam[(VariableType.GroupMentor, team)]
-        constraints.append(sum(typeTwoVars) + (2 * sum(typeOneVars)) >= 2)
-    # create type (2) constraints
-    for mentor in mentors:
-        typeOneVars = var_set.varByMentor[(VariableType.SoloMentor, mentor)]
-        typeTwoVars = var_set.varByMentor[(VariableType.GroupMentor, mentor)]
-        constraints.append(sum(typeOneVars) + sum(typeTwoVars) == 1)
-    # create type (3) constraints
-    for team in teams:
-        typeOneVars = var_set.varByTeam[(VariableType.SoloMentor, team)]
-        typeTwoVars = var_set.varByTeam[(VariableType.GroupMentor, team)]
-        constraints.append(sum(typeOneVars) + sum(typeTwoVars) >= utils.minNumMentors)
-        constraints.append(sum(typeOneVars) + sum(typeTwoVars) <= utils.maxNumMentors)
-    # create type (4) and (5) constraints
-    for mentor1 in mentors:
-        for mentor2 in mentors:
-            if mentors.index(mentor1) >= mentors.index(mentor2):
-                # we only want to consider each pair once, so ignore the second occurrence
-                # this also ensures that we don't consider pairing a mentor with themself
-                continue
-            if mentor1.mustPair(mentor2) or mentor2.mustPair(mentor1):
-                # these mentors are required to be paired, so create the constraints for them
-                constraints.append(
-                    (
-                        sum(var_set.varByMentor[(VariableType.SoloMentor, mentor1)])
-                        + sum(var_set.varByMentor[(VariableType.SoloMentor, mentor2)])
-                        == 0
-                    )
-                )  # type (4) constraint
-                for team in teams:
-                    # get type (2) variables for these mentors and this team
-                    mentor1Var = var_set.varByPair[
-                        (VariableType.GroupMentor, mentor1, team)
-                    ]
-                    # there will only be one variable in each list, so extract it
-                    mentor2Var = var_set.varByPair[
-                        (VariableType.GroupMentor, mentor2, team)
-                    ]
-                    # type (5) constraint
-                    constraints.append(mentor1Var - mentor2Var >= 0)
+    constraint_set = ConstraintSet(var_set, mentors, teams,)
 
     print("Creating objective function...", flush=True)
     objectiveTerms = (
@@ -100,7 +58,7 @@ def main():
     objective = sum(objectiveTerms)
 
     print("Creating problem...", flush=True)
-    prob = cp.Problem(cp.Maximize(objective), constraints)
+    prob = cp.Problem(cp.Maximize(objective), constraint_set.constraints)
 
     print("Solving problem...", flush=True)
     startTime = time.time()
