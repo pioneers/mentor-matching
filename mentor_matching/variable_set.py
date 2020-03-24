@@ -8,10 +8,10 @@ from typing import Tuple
 
 import cvxpy as cp
 
+from mentor_matching.mentor import Mentor
+from mentor_matching.team import Team
 from mentor_matching.utils import getMentorAloneCost
 from mentor_matching.utils import getTeamCompatibility
-from mentor_matching.utils import Mentor
-from mentor_matching.utils import Team
 
 
 class VariableSet(object):

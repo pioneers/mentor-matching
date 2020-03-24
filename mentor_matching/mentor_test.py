@@ -1,7 +1,6 @@
 import csv
-import unittest
 
-from mentor_matching.utils import Mentor
+from mentor_matching.mentor import Mentor
 
 
 def test_from_string():

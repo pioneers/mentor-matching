@@ -2,10 +2,10 @@ from typing import List
 
 import cvxpy as cp
 
-from mentor_matching.utils import maxNumMentors
-from mentor_matching.utils import Mentor
-from mentor_matching.utils import minNumMentors
-from mentor_matching.utils import Team
+from mentor_matching.constants import maxNumMentors
+from mentor_matching.constants import minNumMentors
+from mentor_matching.mentor import Mentor
+from mentor_matching.team import Team
 from mentor_matching.variable_set import VariableSet
 from mentor_matching.variable_set import VariableType
 

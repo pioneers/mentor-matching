@@ -6,5 +6,6 @@ teams.csv
 matching.csv
 compatibility.csv
 .vscode/
+output/
 *.pyc
 .mypy_cache/

@@ -1,8 +1,17 @@
-from main import main
+from mentor_matching.match import match
+from mentor_matching.mentor import mentors_from_file
+from mentor_matching.team import teams_from_file
 
 
 def test_end_to_end():
-    matching = main()
+    with open("data/mentors-example.csv") as mentorFile:
+        mentors = mentors_from_file(mentorFile)
+
+    with open("data/teams-example.csv") as team_file:
+        teams = teams_from_file(team_file)
+
+    var_set = match(mentors, teams)
+    matching = var_set.team_by_mentor()
     assert matching is not None
 
     expected_matching = {
