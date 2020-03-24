@@ -2,6 +2,7 @@ import csv
 from typing import IO
 from typing import List
 
+from mentor_matching.constants import aloneComfortCosts
 from mentor_matching.constants import aloneComfortLevels
 from mentor_matching.constants import availableMark
 from mentor_matching.constants import mentorHeaderRows
@@ -155,23 +156,35 @@ class Mentor:
             self.skillsConfidence.append(dataRow[position])
             position += 1
 
-    def isMatch(self, otherName):
+    def isMatch(self, otherName: str) -> bool:
         """
         Returns whether or not this mentor matches the input name
-        Comparison ignores spaces and capitalization, but otherwise the names must match exactly
+
+        Comparison ignores spaces and capitalization, but otherwise the names
+        must match exactly
         """
         ownName = self.name.replace(" ", "").lower()
         otherName = otherName.replace(" ", "").lower()
         return ownName == otherName
 
-    def mustPair(self, otherMentor):
+    def mustPair(self, otherMentor) -> bool:
         """
-        Returns whether or otherMentor appears in this mentor's list of mentors they are required to be matched with
+        Returns whether or otherMentor appears in this mentor's list of mentors
+        they are required to be matched with.
         """
         for name in self.mentorsRequired:
             if otherMentor.isMatch(name):
                 return True
         return False
+
+    def get_mentor_alone_cost(self):
+        """
+        Finds the cost of this mentor being alone based on their
+        comfortability with that.
+        """
+        mentorComfort = self.comfortAlone
+        mentorIndex = aloneComfortLevels.index(mentorComfort)
+        return aloneComfortCosts[mentorIndex]
 
 
 def mentors_from_file(mentors_file: IO[str]) -> List[Mentor]:

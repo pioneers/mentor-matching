@@ -2,7 +2,6 @@ from typing import List
 
 import cvxpy as cv
 
-from mentor_matching.utils import getMentorAloneCost
 from mentor_matching.utils import getTeamCompatibility
 from mentor_matching.variable_set import VariableSet
 from mentor_matching.variable_set import VariableType
@@ -21,7 +20,7 @@ class ObjectiveSet(object):
     def _create_solo_mentor_terms(self) -> None:
         for var in self._var_set.varByType[VariableType.SoloMentor]:
             _, mentor, team = self._var_set.groupByVar[var]
-            value = getTeamCompatibility(mentor, team) - getMentorAloneCost(mentor)
+            value = getTeamCompatibility(mentor, team) - mentor.get_mentor_alone_cost()
             self._objective_terms.append(value * var)
 
     def _create_group_mentor_terms(self) -> None:

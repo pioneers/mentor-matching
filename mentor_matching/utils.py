@@ -5,8 +5,6 @@ from typing import List
 
 import pandas as pd
 
-from mentor_matching.constants import aloneComfortCosts
-from mentor_matching.constants import aloneComfortLevels
 from mentor_matching.constants import minMeetingTime
 from mentor_matching.constants import minutesPerSlot
 from mentor_matching.constants import noOverlapCost
@@ -22,19 +20,6 @@ from mentor_matching.constants import transitConvenienceLevels
 from mentor_matching.constants import transitConvenienceWeights
 from mentor_matching.mentor import Mentor
 from mentor_matching.team import Team
-
-"""
-Functions for finding the value of a mentor being alone with a team
-"""
-
-
-def getMentorAloneCost(mentor):
-    """
-    Finds the cost of this mentor being alone based on their comfortability with that
-    """
-    mentorComfort = mentor.comfortAlone
-    mentorIndex = aloneComfortLevels.index(mentorComfort)
-    return aloneComfortCosts[mentorIndex]
 
 
 """

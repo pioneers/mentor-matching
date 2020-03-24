@@ -10,7 +10,6 @@ import cvxpy as cp
 
 from mentor_matching.mentor import Mentor
 from mentor_matching.team import Team
-from mentor_matching.utils import getMentorAloneCost
 from mentor_matching.utils import getTeamCompatibility
 
 
@@ -65,7 +64,7 @@ class VariableSet(object):
         variable_type, mentor, team = self.groupByVar[var]
 
         if variable_type == VariableType.SoloMentor:
-            alone_cost = getMentorAloneCost(mentor)
+            alone_cost = mentor.get_mentor_alone_cost()
         else:
             alone_cost = 0
 
