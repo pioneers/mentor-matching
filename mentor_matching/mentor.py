@@ -16,6 +16,7 @@ from mentor_matching.constants import teamTypeNoMark
 from mentor_matching.constants import teamTypeYesMark
 from mentor_matching.constants import transitConvenienceLevels
 from mentor_matching.constants import unavailableMark
+from mentor_matching.team import parse_availability
 
 
 class Mentor:
@@ -53,22 +54,14 @@ class Mentor:
         position += 1
 
         # get availabilities
-        self.availability = (
-            []
-        )  # this will be an array of arrays, where each subarray is the availability on a given day
-        for numSlots in slotsPerDay:
-            dayAvailability = []
-            for slot in range(numSlots):
-                if dataRow[position] == availableMark:
-                    dayAvailability.append(1)
-                elif dataRow[position] == unavailableMark:
-                    dayAvailability.append(0)
-                else:
-                    raise ValueError(
-                        f"Got invalid value {dataRow[position]} for {self.name}'s availability in column {position + 1}"
-                    )
-                position += 1
-            self.availability.append(dayAvailability)
+        # this will be an array of arrays, where each subarray is the availability on a given day
+        self.availability = parse_availability(
+            dataRow[position : position + sum(slotsPerDay)],
+            slotsPerDay,
+            availableMark,
+            unavailableMark,
+        )
+        position += sum(slotsPerDay)
 
         # get team type requests
         self.teamTypeRequests = []

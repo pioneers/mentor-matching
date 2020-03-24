@@ -122,7 +122,7 @@ def getTeamOverlapValue(mentor, team, transitType):
     return value
 
 
-def getTeamTypeValue(mentor, team):
+def getTeamTypeValue(mentor: Mentor, team: Team):
     """
     Get the value for pairing a mentor with a team based on what type of team the mentor wants / what type the team is
 
@@ -136,7 +136,7 @@ def getTeamTypeValue(mentor, team):
     return 0  # no matches :'(
 
 
-def getTeamRequestedValue(mentor, team):
+def getTeamRequestedValue(mentor: Mentor, team: Team):
     """
     If the mentor must be matched with the team, returns teamRequiredValue
     If the mentor just requested the team, returns teamRequestedValue
