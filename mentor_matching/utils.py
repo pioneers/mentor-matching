@@ -16,8 +16,7 @@ from mentor_matching.constants import teamOverlapValue
 from mentor_matching.constants import teamRequestedValue
 from mentor_matching.constants import teamRequiredValue
 from mentor_matching.constants import teamTypeMatchValue
-from mentor_matching.constants import transitConvenienceLevels
-from mentor_matching.constants import transitConvenienceWeights
+from mentor_matching.constants import transit_convenience
 from mentor_matching.mentor import Mentor
 from mentor_matching.team import Team
 
@@ -104,9 +103,8 @@ def getTeamOverlapValue(mentor, team, transitType):
 
     # find the weight of this transit type for this mentor
     convenience = mentor.transitConveniences[transitType]
-    weight = transitConvenienceWeights[
-        transitConvenienceLevels.index(convenience)
-    ]  # index between the weights and levels lists are the same
+    weight = transit_convenience[convenience]
+
     value = totalOverlap * teamOverlapValue * weight
 
     if weight == 0:

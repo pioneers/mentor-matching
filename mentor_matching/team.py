@@ -1,5 +1,6 @@
 import csv
 from typing import IO
+from typing import Iterable
 from typing import List
 
 from mentor_matching.constants import availableMark
@@ -83,7 +84,7 @@ class Team:
         position += numTypesTransit
 
         # get requests for skills
-        skill_requests = parse_skill_requests(
+        skill_requests = ensure_in_set(
             dataRow[position : position + numSkills], skillRequestLevels,
         )
         position += numSkills
@@ -195,3 +196,18 @@ def parse_availability(
         position += num_slots
 
     return availability
+
+
+def ensure_in_set(data: List[str], vocab: Iterable[str],) -> List[str]:
+    """
+    Ensure all elements of data are in vocab.
+
+    vocab must support the in operator
+    """
+
+    def parse(mark: str) -> str:
+        if mark not in vocab:
+            raise ValueError(f"Got invalid mark {mark} in {data}")
+        return mark
+
+    return [parse(mark) for mark in data]

@@ -1,5 +1,6 @@
 import csv
 
+from mentor_matching.constants import AloneComfortLevel
 from mentor_matching.mentor import Mentor
 
 
@@ -9,14 +10,14 @@ def test_from_string():
     ]
     reader = csv.reader(raw_csv_line)
     processed_line = next(reader)
-    mentor = Mentor(processed_line)
+    mentor = Mentor.from_list(processed_line)
 
     assert mentor.name == "Mavericl"
     assert mentor.teamTypeRequests == [1, 1, 0, 0]
     assert mentor.teamsRequested == []
     assert mentor.teamsRequired == []
     assert mentor.mentorsRequired == ["Jessica"]
-    assert mentor.comfortAlone == "1"
+    assert mentor.comfortAlone == AloneComfortLevel.LEAST
     assert mentor.transitConveniences == [
         "Inconvenient",
         "Convenient",

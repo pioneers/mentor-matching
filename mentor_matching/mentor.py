@@ -2,8 +2,7 @@ import csv
 from typing import IO
 from typing import List
 
-from mentor_matching.constants import aloneComfortCosts
-from mentor_matching.constants import aloneComfortLevels
+from mentor_matching.constants import AloneComfortLevel
 from mentor_matching.constants import availableMark
 from mentor_matching.constants import mentorHeaderRows
 from mentor_matching.constants import multiItemDelimiter
@@ -14,8 +13,9 @@ from mentor_matching.constants import skillConfidenceLevels
 from mentor_matching.constants import slotsPerDay
 from mentor_matching.constants import teamTypeNoMark
 from mentor_matching.constants import teamTypeYesMark
-from mentor_matching.constants import transitConvenienceLevels
+from mentor_matching.constants import transit_convenience
 from mentor_matching.constants import unavailableMark
+from mentor_matching.team import ensure_in_set
 from mentor_matching.team import parse_availability
 
 
@@ -25,9 +25,9 @@ class Mentor:
     stores information about a mentor from the spreadsheet and contains various helper functions specific to mentors
     attributes:
         name: the mentor's name as a string
-        availability: the mentor's availability as a boolean matrix
+        availability: the mentor's availability
                         each sublist corresponds to one day, and has a boolean value for each slot
-        teamTypeRequests: the mentor's requests for team types, as a boolean list
+        teamTypeRequests: the mentor's requests for team types
                             each entry corresponds to one team type
         teamsRequested: a list of the name(s) of team(s) a mentor has requested to be on (given extra weight)
                             the list is empty if no teams are requested
@@ -35,28 +35,52 @@ class Mentor:
                             the list is empty if no teams are required
         mentorsRequired: a list of the name(s) of other mentor(s) a mentor must be paired with
                             the list is empty if no other mentors are required
-        comfortAlone: how comfortable the mentor is mentoring alone, as an element from aloneComfortLevels
-        transitConveniences: how convenient each transit type is, as a list of elements from transitConvenienceLevels
+        comfortAlone: how comfortable the mentor is mentoring alone
+        transitConveniences: how convenient each transit type is, as a list of keys from transit_convenience
         skillsConfidence: how confident the mentor is in each skill, as a list of elements from skillConfidenceLevels
     """
 
-    def __init__(self, dataRow):
+    def __init__(
+        self,
+        name: str,
+        availability: List[List[bool]],
+        team_type_requests: List[bool],
+        teams_requested: List[str],
+        teams_required: List[str],
+        mentors_required: List[str],
+        comfort_alone: AloneComfortLevel,
+        transit_conveniences: List[str],
+        skills_confidence: List[str],
+    ):
+        self.name = name
+        self.availability = availability
+        self.teamTypeRequests = team_type_requests
+        self.teamsRequested = teams_requested
+        self.teamsRequired = teams_required
+        self.mentorsRequired = mentors_required
+        self.comfortAlone = comfort_alone
+        self.transitConveniences = transit_conveniences
+        self.skillsConfidence = skills_confidence
+
+    @classmethod
+    def from_list(cls, data_row):
         """
         Initialize a mentor from a spreadsheet row
-        dataRow should contain all the data about a mentor, formatted as described in the comments at the top of this file
+
+        data_row should contain all the data about a mentor, formatted as described in the comments at the top of this file
             all entries should be strings (as is output by a csv reader), otherwise behavior is undefined
         will raise an exception if data is not formatted correctly
         """
-        position = 0  # what position in dataRow we are looking at right now
+        position = 0  # what position in data_row we are looking at right now
 
         # get name
-        self.name = dataRow[position]
+        name = data_row[position]
         position += 1
 
         # get availabilities
         # this will be an array of arrays, where each subarray is the availability on a given day
-        self.availability = parse_availability(
-            dataRow[position : position + sum(slotsPerDay)],
+        availability = parse_availability(
+            data_row[position : position + sum(slotsPerDay)],
             slotsPerDay,
             availableMark,
             unavailableMark,
@@ -64,90 +88,49 @@ class Mentor:
         position += sum(slotsPerDay)
 
         # get team type requests
-        self.teamTypeRequests = []
-        for teamType in range(numTeamTypes):
-            if dataRow[position] == teamTypeYesMark:
-                self.teamTypeRequests.append(1)
-            elif dataRow[position] == teamTypeNoMark:
-                self.teamTypeRequests.append(0)
-            else:
-                raise ValueError(
-                    "Got invalid value "
-                    + dataRow[position]
-                    + " for "
-                    + self.name
-                    + "'s team type request in column "
-                    + str(position + 1)
-                )
-            position += 1
+        teamTypeRequests = parse_team_type_requests(
+            data_row[position : position + numTeamTypes],
+            teamTypeYesMark,
+            teamTypeNoMark,
+        )
+        position += numTeamTypes
 
         # get co-mentor / team requests and requirements
-        self.teamsRequested = []
-        if dataRow[position] != "":  # means the mentor requested at least one team
-            # split up multiple team names, strip leading / trailing white space, and put into an array
-            self.teamsRequested = [
-                name.strip() for name in dataRow[position].split(multiItemDelimiter)
-            ]
-        position += 1
-        self.teamsRequired = []
-        if dataRow[position] != "":  # means the mentor is required by at least one team
-            # split up multiple team names, strip leading / trailing white space, and put into an array
-            self.teamsRequired = [
-                name.strip() for name in dataRow[position].split(multiItemDelimiter)
-            ]
-        position += 1
-        self.mentorsRequired = []
-        if (
-            dataRow[position] != ""
-        ):  # means the mentor is required to be paired with at least one other mentor
-            # split up multiple mentor names, strip leading / trailing white space, and put into an array
-            self.mentorsRequired = [
-                name.strip() for name in dataRow[position].split(multiItemDelimiter)
-            ]
+        teamsRequested = parse_multi_item_list(data_row[position], multiItemDelimiter)
         position += 1
 
-        # get comfort mentoring alone
-        if dataRow[position] not in aloneComfortLevels:
-            raise ValueError(
-                "Got invalid value "
-                + dataRow[position]
-                + " for "
-                + self.name
-                + "'s team comfort mentoring alone in column "
-                + str(position + 1)
-            )
-        self.comfortAlone = dataRow[position]
+        teamsRequired = parse_multi_item_list(data_row[position], multiItemDelimiter)
+        position += 1
+
+        mentorsRequired = parse_multi_item_list(data_row[position], multiItemDelimiter)
+        position += 1
+
+        comfortAlone = AloneComfortLevel(data_row[position])
         position += 1
 
         # get transit type conveniences
-        self.transitConveniences = []
-        for transitType in range(numTypesTransit):
-            if dataRow[position] not in transitConvenienceLevels:
-                raise ValueError(
-                    "Got invalid value "
-                    + dataRow[position]
-                    + " for "
-                    + self.name
-                    + "'s team transit convenience in column "
-                    + str(position + 1)
-                )
-            self.transitConveniences.append(dataRow[position])
-            position += 1
+        transitConveniences = ensure_in_set(
+            data_row[position : position + numTypesTransit], transit_convenience,
+        )
+        position += numTypesTransit
 
         # get confidence in skills
-        self.skillsConfidence = []
-        for skill in range(numSkills):
-            if dataRow[position] not in skillConfidenceLevels:
-                raise ValueError(
-                    "Got invalid value "
-                    + dataRow[position]
-                    + " for "
-                    + self.name
-                    + "'s team skill confidence in column "
-                    + str(position + 1)
-                )
-            self.skillsConfidence.append(dataRow[position])
-            position += 1
+        skillsConfidence = ensure_in_set(
+            data_row[position : position + numSkills], skillConfidenceLevels
+        )
+        position += numSkills
+
+        return cls(
+            name,
+            availability,
+            teamTypeRequests,
+            teamsRequested,
+            teamsRequired,
+            mentorsRequired,
+            comfortAlone,
+            transitConveniences,
+            skillsConfidence,
+        )
 
     def isMatch(self, otherName: str) -> bool:
         """
@@ -175,9 +158,7 @@ class Mentor:
         Finds the cost of this mentor being alone based on their
         comfortability with that.
         """
-        mentorComfort = self.comfortAlone
-        mentorIndex = aloneComfortLevels.index(mentorComfort)
-        return aloneComfortCosts[mentorIndex]
+        return self.comfortAlone.cost()
 
 
 def mentors_from_file(mentors_file: IO[str]) -> List[Mentor]:
@@ -186,8 +167,38 @@ def mentors_from_file(mentors_file: IO[str]) -> List[Mentor]:
     # remove header rows, if any
     for _ in range(mentorHeaderRows):
         next(mentorReader)  # just read the row and throw it away
-    for dataRow in mentorReader:
+    for data_row in mentorReader:
         mentors.append(
-            Mentor(dataRow)
+            Mentor.from_list(data_row)
         )  # create a new mentor object based on each row of data
     return mentors
+
+
+def parse_team_type_requests(
+    data: List[str], yes_mark: str, no_mark: str,
+) -> List[bool]:
+    def parse_team_type_mark(mark: str) -> bool:
+        if mark == teamTypeYesMark:
+            return True
+        elif mark == teamTypeNoMark:
+            return False
+        else:
+            raise ValueError(f"Got invalid mark {mark} in {data}")
+
+    return [parse_team_type_mark(mark) for mark in data]
+
+
+def parse_multi_item_list(entry: str, multi_item_delimiter: str,) -> List[str]:
+    """
+    Split a string into elements and cleans them.
+
+    >>> parse_multi_item_list("sure; next; great", ";")
+    ["sure", "next", "great"]
+
+    >>> parse_multi_item_list("", ";")
+    []
+    """
+    if entry == "":
+        return []
+
+    return [name.strip() for name in entry.split(multi_item_delimiter)]
