@@ -6,14 +6,14 @@ Further developed by Scott Numamoto and Vivien Nguyen in 2019.
 Yet more development by James Hulett in January 2020.
 
 ### README Table of Contents
-[Usage](#usage)  
-[Mentor Data Format](#mentor-data-format)  
-[Team Data Format](#team-data-format)  
-[How To Modify the Input Format](#how-to-modify-the-input-format)  
-[How To Change the Weights](#how-to-change-the-weights)  
-[How To Modify the Convex Program](#how-to-modify-the-convex-program)  
-[Description of the Convex Program](#description-of-the-convex-program)  
-[TODOs](#todos)  
+[Usage](#usage)
+[Mentor Data Format](#mentor-data-format)
+[Team Data Format](#team-data-format)
+[How To Modify the Input Format](#how-to-modify-the-input-format)
+[How To Change the Weights](#how-to-change-the-weights)
+[How To Modify the Convex Program](#how-to-modify-the-convex-program)
+[Description of the Convex Program](#description-of-the-convex-program)
+[TODOs](#todos)
 
 
 ### Usage
@@ -103,18 +103,18 @@ Note: I strongly recommend against trying to change the basic structure of the c
 ### Description of the Convex Program
 This section describes the convex program that is used to find a matching.  Hopefully no one will ever have to read this.
 
-Variables:  
+Variables:
 1. One boolean variable for each mentor-team pair, representing if that mentor is paired with that team and is alone
 2. One boolean variable for each mentor-team pair, representing if that mentor AND at least one other are paired with that team
 
-Constraints:  
+Constraints:
 1. The sum of a team's type 2 variables plus twice the sum of its type 1 variables must be at least 2.  This ensures that if only one mentor is assigned to the team, the program must use the corresponding type 1 variable, and not the type 2 variable.
 2. The sum of a mentor's type 1 and 2 variables is exactly 1.  This ensures that a mentor gets matched with exactly one team.
 3. The sum of a team's type 1 and 2 variables is between 1 and 2.  This ensures that a team gets an appropriate number of mentors.
 4. For every pair of mentors who are required to be together, the sum of all their type 1 variables must be zero.  This ensures that mentors who are supposed to be paired together don't end up alone.
 5. For every pair of mentors who are required to be together and for each team, the difference between the type 2 variables for those mentors and that team must be greater than or equal to zero.  This ensures that these mentors will be together, as if the second mentor is assigned to a team the first mentor isn't, that difference will be negative.  This assumes these mentors aren't assigned using type 1 variables, which the constraints of type 4 guarantee.
 
-Terms in the Objective Function:  
+Terms in the Objective Function:
 1. For each type 1 variable, we have (the value of that mentor-team matching minus the cost of the mentor being alone) times the variable.
 2. For each type 2 variable, we have the value of that mentor-team matching times the variable.
 
