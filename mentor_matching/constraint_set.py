@@ -10,6 +10,8 @@ from mentor_matching.team import Team
 
 
 class ConstraintSet(object):
+    """Assembles all constraints for a valid matching"""
+
     def __init__(
         self,
         assignment_set: AssignmentSet,
