@@ -5,6 +5,11 @@ from mentor_matching.team import teams_from_file
 
 
 def test_end_to_end():
+    """
+    Ensure mentor_matching continues to produce the same matching, given
+    the same inputs.
+    """
+
     with open("data/mentors-example.csv") as mentorFile:
         mentors = mentors_from_file(mentorFile)
 

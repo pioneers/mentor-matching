@@ -21,8 +21,8 @@ from mentor_matching.team import parse_availability
 
 class Mentor:
     """
-    class representing a mentor
-    stores information about a mentor from the spreadsheet and contains various helper functions specific to mentors
+    Stores info about a mentor from the spreadsheet
+
     attributes:
         name: the mentor's name as a string
         availability: the mentor's availability
@@ -67,8 +67,11 @@ class Mentor:
         """
         Initialize a mentor from a spreadsheet row
 
-        data_row should contain all the data about a mentor, formatted as described in the comments at the top of this file
-            all entries should be strings (as is output by a csv reader), otherwise behavior is undefined
+        data_row should contain all the data about a mentor, formatted as
+            described in the comments at the top of this file all entries
+            should be strings (as is output by a csv reader), otherwise
+            behavior is undefined.
+
         will raise an exception if data is not formatted correctly
         """
         position = 0  # what position in data_row we are looking at right now
