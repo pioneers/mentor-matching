@@ -12,52 +12,59 @@ from mentor_matching.mentor import Mentor
 from mentor_matching.team import Team
 
 
-class VariableSet(object):
-    """Contains all variable for the optimization"""
+class AssignmentSet(object):
+    """
+    Contains all variables for the optimization.
+
+    Each variable indicates whether a specific mentor is assigned to a
+    specific school alone or with other mentors.
+    """
 
     def __init__(self, mentors: List[Mentor], teams: List[Team]):
         self._mentors = mentors
         self._teams = teams
 
         # list of all variables
-        self.variables: List[cp.Variable] = []
+        self.assignments: List[cp.Variable] = []
 
         # map from variable type to list of variables of that type
-        self.varByType: Dict[VariableType, List[cp.Variable]] = {}
+        self.by_type: Dict[AssignmentType, List[cp.Variable]] = {}
 
         # map from (variable type, mentor) to list of variables of that type for that mentor
-        self.varByMentor: Dict[Tuple[VariableType, Mentor], List[cp.Variable]] = {}
+        self.by_mentor: Dict[Tuple[AssignmentType, Mentor], List[cp.Variable]] = {}
 
         # map from (variable type, team) to list of variables of that type for that team
-        self.varByTeam: Dict[Tuple[VariableType, Team], List[cp.Variable]] = {}
+        self.by_team: Dict[Tuple[AssignmentType, Team], List[cp.Variable]] = {}
 
         # map from (variable type, mentor, team) to list of variable of that type for that team and mentor
-        self.varByPair: Dict[Tuple[VariableType, Mentor, Team], cp.Variable] = {}
+        self.by_mentor_team: Dict[Tuple[AssignmentType, Mentor, Team], cp.Variable] = {}
 
         # map from a variable to the (variable type, mentor, team) corresponding to it
-        self.groupByVar: Dict[cp.Variable, Tuple[VariableType, Mentor, Team]] = {}
+        self.assignment_group: Dict[
+            cp.Variable, Tuple[AssignmentType, Mentor, Team]
+        ] = {}
 
-        # initialize varByType, varByMentor, varByTeam, and varByPair with empty lists to prevent KeyErrors later
-        for varType in VariableType:
-            self.varByType[varType] = []
+        # initialize by_type, by_mentor, by_team, and by_mentor_team with empty lists to prevent KeyErrors later
+        for assignment_type in AssignmentType:
+            self.by_type[assignment_type] = []
             for mentor in self._mentors:
-                self.varByMentor[(varType, mentor)] = []
+                self.by_mentor[(assignment_type, mentor)] = []
             for team in self._teams:
-                self.varByTeam[(varType, team)] = []
+                self.by_team[(assignment_type, team)] = []
 
         # create variables
-        for varType in VariableType:
+        for assignment_type in AssignmentType:
             for mentor in self._mentors:
                 for team in self._teams:
                     # Each variable is tied to a mentor, team, and variable type.
                     # A value of 1 --> mentor is assigned to that team.
-                    newVar = cp.Variable(boolean=True)
-                    self.variables.append(newVar)
-                    self.varByType[varType].append(newVar)
-                    self.varByMentor[(varType, mentor)].append(newVar)
-                    self.varByTeam[(varType, team)].append(newVar)
-                    self.varByPair[(varType, mentor, team)] = newVar
-                    self.groupByVar[newVar] = (varType, mentor, team)
+                    assignment = cp.Variable(boolean=True)
+                    self.assignments.append(assignment)
+                    self.by_type[assignment_type].append(assignment)
+                    self.by_mentor[(assignment_type, mentor)].append(assignment)
+                    self.by_team[(assignment_type, team)].append(assignment)
+                    self.by_mentor_team[(assignment_type, mentor, team)] = assignment
+                    self.assignment_group[assignment] = (assignment_type, mentor, team)
 
     def mentors_by_team(self) -> Dict[Team, List[Mentor]]:
         """
@@ -67,9 +74,9 @@ class VariableSet(object):
         mentors_by_team: Dict[Team, List[Mentor]] = {}
         for team in self._teams:
             mentors_by_team[team] = []
-        for var in self.variables:
-            if var.value > 0.5:
-                _, mentor, team = self.groupByVar[var]
+        for assignment in self.assignments:
+            if assignment.value > 0.5:
+                _, mentor, team = self.assignment_group[assignment]
                 mentors_by_team[team].append(mentor)
         return mentors_by_team
 
@@ -79,9 +86,9 @@ class VariableSet(object):
         Return empty if the problem hasn't been solved.
         """
         team_by_mentor = {}
-        for var in self.variables:
-            if var.value > 0.5:
-                _, mentor, team = self.groupByVar[var]
+        for assignment in self.assignments:
+            if assignment.value > 0.5:
+                _, mentor, team = self.assignment_group[assignment]
                 team_by_mentor[mentor] = team
         return team_by_mentor
 
@@ -112,9 +119,9 @@ class VariableSet(object):
             )
 
 
-class VariableType(Enum):
-    # SoloMentor variables indicate if a mentor is assigned to a team alone
+class AssignmentType(Enum):
+    # SoloMentor assignments indicate if a mentor is assigned to a team alone
     SoloMentor = auto()
-    # GroupMentor variables indicate if a mentor is assigned to a team with
+    # GroupMentor assignments indicate if a mentor is assigned to a team with
     # at least one other mentor
     GroupMentor = auto()

@@ -31,3 +31,6 @@ def test_from_string():
     team = Team.from_list(processed_line)
 
     assert team.name == "Dustox"
+    assert team.teamTypes == [False, False, False, True]
+    assert team.transitTimes == [76, 76, 36, 36, 36]
+    assert team.skillRequests == ["4", "4"]

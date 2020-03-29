@@ -2,30 +2,30 @@ from typing import List
 
 import cvxpy as cp
 
+from mentor_matching.assignment_set import AssignmentSet
+from mentor_matching.assignment_set import AssignmentType
 from mentor_matching.mentor import Mentor
 from mentor_matching.objective_set import Parameters
 from mentor_matching.team import Team
-from mentor_matching.variable_set import VariableSet
-from mentor_matching.variable_set import VariableType
 
 
 class ConstraintSet(object):
     def __init__(
         self,
-        var_set: VariableSet,
+        assignment_set: AssignmentSet,
         mentors: List[Mentor],
         teams: List[Team],
         parameters: Parameters,
     ):
         self.constraints: List[cp.constraints.constraint.Constraint] = []
 
-        self._var_set = var_set
+        self._assignment_set = assignment_set
         self._teams = teams
         self._mentors = mentors
         self._parameters = parameters
 
         self.ensure_assignment_types()
-        self.ensure_one_mentor_per_team()
+        self.ensure_one_team_per_mentor()
         self.ensure_mentor_number_constraints()
         self.ensure_mentor_pairings()
 
@@ -39,20 +39,34 @@ class ConstraintSet(object):
         variables must be at least 2.
         """
         for team in self._teams:
-            typeOneVars = self._var_set.varByTeam[(VariableType.SoloMentor, team)]
-            typeTwoVars = self._var_set.varByTeam[(VariableType.GroupMentor, team)]
-            self.constraints.append(sum(typeTwoVars) + (2 * sum(typeOneVars)) >= 2)
+            solo_assignments_for_team = self._assignment_set.by_team[
+                (AssignmentType.SoloMentor, team)
+            ]
+            group_assignments_for_team = self._assignment_set.by_team[
+                (AssignmentType.GroupMentor, team)
+            ]
+            self.constraints.append(
+                sum(group_assignments_for_team) + (2 * sum(solo_assignments_for_team))
+                >= 2
+            )
 
-    def ensure_one_mentor_per_team(self) -> None:
+    def ensure_one_team_per_mentor(self) -> None:
         """
         Ensure that a mentor gets matched with exactly one team.
 
         The sum of a mentor's type 1 and 2 variables is exactly 1.
         """
         for mentor in self._mentors:
-            typeOneVars = self._var_set.varByMentor[(VariableType.SoloMentor, mentor)]
-            typeTwoVars = self._var_set.varByMentor[(VariableType.GroupMentor, mentor)]
-            self.constraints.append(sum(typeOneVars) + sum(typeTwoVars) == 1)
+            solo_assignments_for_mentor = self._assignment_set.by_mentor[
+                (AssignmentType.SoloMentor, mentor)
+            ]
+            group_assignments_for_mentor = self._assignment_set.by_mentor[
+                (AssignmentType.GroupMentor, mentor)
+            ]
+            self.constraints.append(
+                sum(solo_assignments_for_mentor) + sum(group_assignments_for_mentor)
+                == 1
+            )
 
     def ensure_mentor_number_constraints(self):
         """
@@ -63,13 +77,19 @@ class ConstraintSet(object):
         """
 
         for team in self._teams:
-            typeOneVars = self._var_set.varByTeam[(VariableType.SoloMentor, team)]
-            typeTwoVars = self._var_set.varByTeam[(VariableType.GroupMentor, team)]
+            solo_assignments_for_team = self._assignment_set.by_team[
+                (AssignmentType.SoloMentor, team)
+            ]
+            group_assignments_for_team = self._assignment_set.by_team[
+                (AssignmentType.GroupMentor, team)
+            ]
             self.constraints.append(
-                sum(typeOneVars) + sum(typeTwoVars) >= self._parameters.minNumMentors
+                sum(solo_assignments_for_team) + sum(group_assignments_for_team)
+                >= self._parameters.minNumMentors
             )
             self.constraints.append(
-                sum(typeOneVars) + sum(typeTwoVars) <= self._parameters.maxNumMentors
+                sum(solo_assignments_for_team) + sum(group_assignments_for_team)
+                <= self._parameters.maxNumMentors
             )
 
     def ensure_mentor_pairings(self):
@@ -90,37 +110,39 @@ class ConstraintSet(object):
         and that team must be greater than or equal to zero.
         """
 
-        for mentor1 in self._mentors:
-            for mentor2 in self._mentors:
-                if self._mentors.index(mentor1) >= self._mentors.index(mentor2):
+        for mentor_1 in self._mentors:
+            for mentor_2 in self._mentors:
+                if self._mentors.index(mentor_1) >= self._mentors.index(mentor_2):
                     # we only want to consider each pair once, so ignore the second occurrence
                     # this also ensures that we don't consider pairing a mentor with themself
                     continue
-                if mentor1.mustPair(mentor2) or mentor2.mustPair(mentor1):
+                if mentor_1.mustPair(mentor_2) or mentor_2.mustPair(mentor_1):
                     # these mentors are required to be paired, so create the constraints for them
+                    # type (4) constraint
                     self.constraints.append(
                         (
                             sum(
-                                self._var_set.varByMentor[
-                                    (VariableType.SoloMentor, mentor1)
+                                self._assignment_set.by_mentor[
+                                    (AssignmentType.SoloMentor, mentor_1)
                                 ]
                             )
                             + sum(
-                                self._var_set.varByMentor[
-                                    (VariableType.SoloMentor, mentor2)
+                                self._assignment_set.by_mentor[
+                                    (AssignmentType.SoloMentor, mentor_2)
                                 ]
                             )
                             == 0
                         )
-                    )  # type (4) constraint
+                    )
                     for team in self._teams:
                         # get type (2) variables for these mentors and this team
-                        mentor1Var = self._var_set.varByPair[
-                            (VariableType.GroupMentor, mentor1, team)
+                        # type (5) constraint
+                        mentor_1_assignment = self._assignment_set.by_mentor_team[
+                            (AssignmentType.GroupMentor, mentor_1, team)
                         ]
-                        mentor2Var = self._var_set.varByPair[
-                            (VariableType.GroupMentor, mentor2, team)
+                        mentor_2_assignment = self._assignment_set.by_mentor_team[
+                            (AssignmentType.GroupMentor, mentor_2, team)
                         ]
                         self.constraints.append(
-                            mentor1Var - mentor2Var >= 0
-                        )  # type (5) constraint
+                            mentor_1_assignment - mentor_2_assignment >= 0
+                        )
