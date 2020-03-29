@@ -1,5 +1,6 @@
 from mentor_matching.match import match
 from mentor_matching.mentor import mentors_from_file
+from mentor_matching.objective_set import Parameters
 from mentor_matching.team import teams_from_file
 
 
@@ -10,7 +11,10 @@ def test_end_to_end():
     with open("data/teams-example.csv") as team_file:
         teams = teams_from_file(team_file)
 
-    var_set = match(mentors, teams)
+    with open("data/matching_parameters.yaml") as parameters_file:
+        parameters = Parameters.from_file(parameters_file)
+
+    var_set = match(mentors, teams, parameters)
     matching = var_set.team_by_mentor()
     assert matching is not None
 

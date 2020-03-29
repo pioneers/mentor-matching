@@ -2,8 +2,8 @@ import csv
 from typing import IO
 from typing import List
 
-from mentor_matching.constants import AloneComfortLevel
 from mentor_matching.constants import availableMark
+from mentor_matching.constants import comfortAloneLevels
 from mentor_matching.constants import mentorHeaderRows
 from mentor_matching.constants import multiItemDelimiter
 from mentor_matching.constants import numSkills
@@ -48,7 +48,7 @@ class Mentor:
         teams_requested: List[str],
         teams_required: List[str],
         mentors_required: List[str],
-        comfort_alone: AloneComfortLevel,
+        comfort_alone: str,
         transit_conveniences: List[str],
         skills_confidence: List[str],
     ):
@@ -105,7 +105,10 @@ class Mentor:
         mentorsRequired = parse_multi_item_list(data_row[position], multiItemDelimiter)
         position += 1
 
-        comfortAlone = AloneComfortLevel(data_row[position])
+        comfort_alone_level = data_row[position]
+        if comfort_alone_level not in comfortAloneLevels:
+            raise ValueError(f"Got invalid comfort alone level {comfort_alone_level}")
+        comfortAlone = comfort_alone_level
         position += 1
 
         # get transit type conveniences
@@ -152,13 +155,6 @@ class Mentor:
             if otherMentor.isMatch(name):
                 return True
         return False
-
-    def get_mentor_alone_cost(self):
-        """
-        Finds the cost of this mentor being alone based on their
-        comfortability with that.
-        """
-        return self.comfortAlone.cost()
 
 
 def mentors_from_file(mentors_file: IO[str]) -> List[Mentor]:

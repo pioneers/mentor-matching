@@ -10,7 +10,6 @@ import cvxpy as cp
 
 from mentor_matching.mentor import Mentor
 from mentor_matching.team import Team
-from mentor_matching.utils import getTeamCompatibility
 
 
 class VariableSet(object):
@@ -59,16 +58,6 @@ class VariableSet(object):
                     self.varByTeam[(varType, team)].append(newVar)
                     self.varByPair[(varType, mentor, team)] = newVar
                     self.groupByVar[newVar] = (varType, mentor, team)
-
-    def assignment_compatability(self, var: cp.Variable) -> int:
-        variable_type, mentor, team = self.groupByVar[var]
-
-        if variable_type == VariableType.SoloMentor:
-            alone_cost = mentor.get_mentor_alone_cost()
-        else:
-            alone_cost = 0
-
-        return getTeamCompatibility(mentor, team) - alone_cost
 
     def mentors_by_team(self) -> Dict[Team, List[Mentor]]:
         """

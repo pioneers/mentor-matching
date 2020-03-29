@@ -2,9 +2,8 @@ from typing import List
 
 import cvxpy as cp
 
-from mentor_matching.constants import maxNumMentors
-from mentor_matching.constants import minNumMentors
 from mentor_matching.mentor import Mentor
+from mentor_matching.objective_set import Parameters
 from mentor_matching.team import Team
 from mentor_matching.variable_set import VariableSet
 from mentor_matching.variable_set import VariableType
@@ -12,13 +11,18 @@ from mentor_matching.variable_set import VariableType
 
 class ConstraintSet(object):
     def __init__(
-        self, var_set: VariableSet, mentors: List[Mentor], teams: List[Team],
+        self,
+        var_set: VariableSet,
+        mentors: List[Mentor],
+        teams: List[Team],
+        parameters: Parameters,
     ):
         self.constraints: List[cp.constraints.constraint.Constraint] = []
 
         self._var_set = var_set
         self._teams = teams
         self._mentors = mentors
+        self._parameters = parameters
 
         self.ensure_assignment_types()
         self.ensure_one_mentor_per_team()
@@ -62,10 +66,10 @@ class ConstraintSet(object):
             typeOneVars = self._var_set.varByTeam[(VariableType.SoloMentor, team)]
             typeTwoVars = self._var_set.varByTeam[(VariableType.GroupMentor, team)]
             self.constraints.append(
-                sum(typeOneVars) + sum(typeTwoVars) >= minNumMentors
+                sum(typeOneVars) + sum(typeTwoVars) >= self._parameters.minNumMentors
             )
             self.constraints.append(
-                sum(typeOneVars) + sum(typeTwoVars) <= maxNumMentors
+                sum(typeOneVars) + sum(typeTwoVars) <= self._parameters.maxNumMentors
             )
 
     def ensure_mentor_pairings(self):

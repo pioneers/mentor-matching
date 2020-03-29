@@ -1,10 +1,8 @@
 """
-Holds constants.
+Constants for parsing team and mentors from CSV
 
 This file is to later be broken down by constant usage
 """
-from enum import Enum
-
 # Basic formatting
 # how many of the rows in the mentor sheet are headers and so should be ignored
 mentorHeaderRows = 1
@@ -43,26 +41,11 @@ teamTypeYesMark = "1"
 # what will appear if a mentor doesn't want a team type / the team isn't that type
 teamTypeNoMark = "0"
 
-
 # Mentoring alone
 # comfort levels mentors can put down for mentoring alone
-class AloneComfortLevel(Enum):
-    LEAST = "1"
-    LESS = "2"
-    MEDIUM = "3"
-    MORE = "4"
-    MOST = "5"
-
-    def cost(self):
-        alone_comfort_costs = {
-            AloneComfortLevel.LEAST: 1500,
-            AloneComfortLevel.LESS: 1000,
-            AloneComfortLevel.MEDIUM: 500,
-            AloneComfortLevel.MORE: 10,
-            AloneComfortLevel.MOST: 1,
-        }
-        return alone_comfort_costs[self]
-
+# "1" is most uncomfortable mentoring alone
+# "5" is very comfortable mentoring alone
+comfortAloneLevels = ["1", "2", "3", "4", "5"]
 
 # Transit
 # number of different types of transit we ask mentors / teams about
@@ -102,49 +85,4 @@ skillRequestLevels = [
     "3",
     "2",
     "1",
-]
-
-
-"""
-Weights and other matching-related constants
-"""
-
-# Number of mentors per team
-minNumMentors = 1  # minimum number of mentors that can be assigned to a team
-maxNumMentors = 2  # maximum number of mentors that can be assigned to a team
-
-# Availability overlap
-# minimum number of minutes a mentor's / team's availabilities need to overlap in order to count
-minMeetingTime = 60
-# how many minutes per week we want mentors to be with their teams
-totalMeetingTime = 90
-# how much each minute of availability overlap between a team and mentor is valued
-teamOverlapValue = 10
-# how much each minute of availability overlap between two mentors is valued
-mentorOverlapValue = 0
-# how much cost to incur if a mentor and team don't have any availabilities at the same times (should be very large)
-noOverlapCost = 10000
-# how much cost to incur if there is some overlap, but less than totalMeetingTime
-partialOverlapCost = 10000
-
-# Team types
-# how much value to give if a team is of a type the mentor wants
-teamTypeMatchValue = 500
-
-# Team requests
-# how much value to give if a mentor requested to work with a team
-teamRequestedValue = 900
-# how much value to give if a mentor *must* be matched with this team
-teamRequiredValue = 200000
-
-# Skills
-skillMatchValues = [
-    # how much value to give depending on how confident a mentor is in a skill and how much a team wants it
-    [0, 0, 0, 0, 0],
-    # each subarray corresponds to a team request level, from least important to most
-    [0, 15, 25, 40, 50],
-    # each entry in a subarray corresponds to a mentor confidence level, from least to most
-    [0, 25, 50, 75, 100],
-    [0, 50, 100, 150, 200],
-    [0, 75, 150, 225, 300],
 ]
