@@ -2,7 +2,7 @@ import csv
 
 import pytest
 
-from mentor_matching.team import parse_availability
+from mentor_matching import csv_parsing
 from mentor_matching.team import Team
 
 
@@ -17,7 +17,7 @@ from mentor_matching.team import Team
 def test_parse_availability(
     data, slots_per_day, available_mark, unavailable_mark, expected,
 ):
-    assert expected == parse_availability(
+    assert expected == csv_parsing.parse_availability(
         data, slots_per_day, available_mark, unavailable_mark,
     )
 

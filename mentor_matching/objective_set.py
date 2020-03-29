@@ -5,7 +5,7 @@ import cvxpy as cv
 import pandas as pd
 import yaml
 
-from mentor_matching import constants
+from mentor_matching import csv_parsing
 from mentor_matching.assignment_set import AssignmentSet
 from mentor_matching.assignment_set import AssignmentType
 from mentor_matching.mentor import Mentor
@@ -71,9 +71,9 @@ class Parameters(object):
             raise ValueError(
                 f"minNumMenotrs ({self.minNumMentors} cannot be greater than maxNumMentors ({self.maxNumMentors})"
             )
-        if len(self.comfortAloneCosts) != len(constants.comfortAloneLevels):
+        if len(self.comfortAloneCosts) != len(csv_parsing.comfortAloneLevels):
             raise ValueError(
-                f"comfortAloneCosts ({self.comfortAloneCosts}) and comfortAloneLevels {constants.comfortAloneLevels} do not match length"
+                f"comfortAloneCosts ({self.comfortAloneCosts}) and comfortAloneLevels {csv_parsing.comfortAloneLevels} do not match length"
             )
 
 
@@ -86,7 +86,7 @@ def comfort_alone_level_to_cost(
     Creates a dict that maps levels to costs, then uses that dict
     """
     level_to_cost = dict(
-        zip(constants.comfortAloneLevels, parameters.comfortAloneCosts)
+        zip(csv_parsing.comfortAloneLevels, parameters.comfortAloneCosts)
     )
     return level_to_cost[comfort_alone_level]
 
@@ -134,7 +134,7 @@ class ObjectiveSet(object):
                         in practice, so I don't think it's worth futzing with the code to try to fix that.
         """
         totalOverlap = 0
-        for day, slots_in_day in enumerate(constants.slotsPerDay):
+        for day, slots_in_day in enumerate(csv_parsing.slotsPerDay):
             # at the beginning of a day, reset all counters for contiguous blocks
             # mentor may be able to travel before overlap happens
             mentorAvailabilityBeforeOverlap = 0
@@ -145,14 +145,14 @@ class ObjectiveSet(object):
                     and team.availability[day][slotNum]
                 ):
                     # this slot is part of an overlap, so start the overlap counter
-                    currOverlap += constants.minutesPerSlot
+                    currOverlap += csv_parsing.minutesPerSlot
                 elif currOverlap > 0:
                     # previously was in an overlap, but that just ended
                     # need to figure out how much time the mentor is free after the overlap in case they can travel during that time
                     mentorAvailabilityAfterOverlap = 0
                     for afterSlot in range(slotNum, slots_in_day):
                         if mentor.availability[day][slotNum]:
-                            mentorAvailabilityAfterOverlap += constants.minutesPerSlot
+                            mentorAvailabilityAfterOverlap += csv_parsing.minutesPerSlot
                         else:
                             break  # found a gap in the mentor's availability, so stop counting
                     if (
@@ -182,7 +182,7 @@ class ObjectiveSet(object):
                 elif mentor.availability[day][slotNum]:
                     # mentor has availability right now, but school doesn't
                     # at best, this is time the mentor could use for travel before another overlap, so increment that counter
-                    mentorAvailabilityBeforeOverlap += constants.minutesPerSlot
+                    mentorAvailabilityBeforeOverlap += csv_parsing.minutesPerSlot
                 else:
                     # mentor has no availability and didn't just finish an overlap, so reset counters
                     mentorAvailabilityBeforeOverlap = 0
@@ -203,7 +203,7 @@ class ObjectiveSet(object):
 
         # find the weight of this transit type for this mentor
         convenience = mentor.transitConveniences[transit_type]
-        weight = constants.transit_convenience[convenience]
+        weight = csv_parsing.transit_convenience[convenience]
 
         value = totalOverlap * self.parameters.teamOverlapValue * weight
 
@@ -227,7 +227,7 @@ class ObjectiveSet(object):
                         based off our previous system, this makes sense since each team can only be one type
                         but in principle we could have multiple non-exclusive descriptors for a team, and give more value if there are more matches
         """
-        for teamType in range(constants.numTeamTypes):
+        for teamType in range(csv_parsing.numTeamTypes):
             if mentor.teamTypeRequests[teamType] and team.teamTypes[teamType]:
                 return self.parameters.teamTypeMatchValue
         return 0  # no matches :'(
@@ -257,7 +257,7 @@ class ObjectiveSet(object):
         # value may differ depending on transportation type used, so try them all
         # baseline to beat is no overlap at all
         bestOverlap = -self.parameters.noOverlapCost
-        for transit_type in range(constants.numTypesTransit):
+        for transit_type in range(csv_parsing.numTypesTransit):
             # check if this transit type is better than previous best and update if needed
             bestOverlap = max(
                 bestOverlap, self.get_team_overlap_value(mentor, team, transit_type)

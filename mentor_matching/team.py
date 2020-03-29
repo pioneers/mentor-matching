@@ -1,18 +1,8 @@
 import csv
 from typing import IO
-from typing import Iterable
 from typing import List
 
-from mentor_matching.constants import availableMark
-from mentor_matching.constants import numSkills
-from mentor_matching.constants import numTeamTypes
-from mentor_matching.constants import numTypesTransit
-from mentor_matching.constants import skillRequestLevels
-from mentor_matching.constants import slotsPerDay
-from mentor_matching.constants import teamHeaderRows
-from mentor_matching.constants import teamTypeNoMark
-from mentor_matching.constants import teamTypeYesMark
-from mentor_matching.constants import unavailableMark
+from mentor_matching import csv_parsing
 
 
 class Team:
@@ -26,7 +16,7 @@ class Team:
         team_types: whether the team falls into each team type
             each entry corresponds to one team type
         transit_times: how long each transit type would take in minutes
-        skill_requests: how much the team wants each skill, as a list of elements from skillRequestLevels
+        skill_requests: how much the team wants each skill, as a list of elements from csv_parsing.skillRequestLevels
     """
 
     def __init__(
@@ -61,33 +51,34 @@ class Team:
 
         # get availabilities
         # this will be an array of arrays, where each subarray is the availability on a given day
-        availability = parse_availability(
-            dataRow[position : position + sum(slotsPerDay)],
-            slotsPerDay,
-            availableMark,
-            unavailableMark,
+        availability = csv_parsing.parse_availability(
+            dataRow[position : position + sum(csv_parsing.slotsPerDay)],
+            csv_parsing.slotsPerDay,
+            csv_parsing.availableMark,
+            csv_parsing.unavailableMark,
         )
-        position += sum(slotsPerDay)
+        position += sum(csv_parsing.slotsPerDay)
 
         # get team types
         team_types = parse_team_type_data(
-            dataRow[position : position + numTeamTypes],
-            teamTypeYesMark,
-            teamTypeNoMark,
+            dataRow[position : position + csv_parsing.numTeamTypes],
+            csv_parsing.teamTypeYesMark,
+            csv_parsing.teamTypeNoMark,
         )
-        position += numTeamTypes
+        position += csv_parsing.numTeamTypes
 
         # get transit times
         transit_times = parse_transit_times(
-            dataRow[position : position + numTypesTransit]
+            dataRow[position : position + csv_parsing.numTypesTransit]
         )
-        position += numTypesTransit
+        position += csv_parsing.numTypesTransit
 
         # get requests for skills
-        skill_requests = ensure_in_set(
-            dataRow[position : position + numSkills], skillRequestLevels,
+        skill_requests = csv_parsing.ensure_in_set(
+            dataRow[position : position + csv_parsing.numSkills],
+            csv_parsing.skillRequestLevels,
         )
-        position += numSkills
+        position += csv_parsing.numSkills
 
         return cls(name, availability, team_types, transit_times, skill_requests)
 
@@ -105,7 +96,7 @@ def teams_from_file(teams_file: IO[str]) -> List[Team]:
     teams = []
     teamReader = csv.reader(teams_file)
     # remove header rows, if any
-    for _ in range(teamHeaderRows):
+    for _ in range(csv_parsing.teamHeaderRows):
         next(teamReader)  # throw out header rows
     for dataRow in teamReader:
         teams.append(Team.from_list(dataRow))  # create the team object
@@ -145,69 +136,3 @@ def parse_team_type_data(data: List[str], yes_mark: str, no_mark: str,) -> List[
             raise ValueError(f"Got invalid team type mark: {mark} in {data}")
 
     return [parse_team_type_mark(mark) for mark in data]
-
-
-def parse_availability(
-    data: List[str],
-    slots_per_day: List[int],
-    available_mark: str,
-    unavailable_mark: str,
-) -> List[List[bool]]:
-    """
-    Parse the availability given from a subsection of a CSV row.
-
-    >>> parse_availability(
-        ["1", "0", "0", "1"],
-        [2, 2],
-        "1",
-        "0",
-    )
-    [[True, False], [False, True]]
-
-    >>> parse_availability(
-        ["present", "absent", "absent", "present"],
-        [2, 1, 1],
-        "present",
-        "absent",
-    )
-    [[True, False], [False], [True]]
-    """
-
-    if len(data) != sum(slots_per_day):
-        raise ValueError(
-            f"Expected list of length {sum(slots_per_day)} but found list of length {len(data)}"
-        )
-
-    def parse_availability_mark(mark: str) -> bool:
-        if mark == available_mark:
-            return True
-        elif mark == unavailable_mark:
-            return False
-        else:
-            raise ValueError(f"Got invalid availability mark: {mark} in {data}")
-
-    availability: List[List[bool]] = []
-
-    position = 0
-    for num_slots in slots_per_day:
-        day_data = data[position : position + num_slots]
-        day_availability = [parse_availability_mark(mark) for mark in day_data]
-        availability.append(day_availability)
-        position += num_slots
-
-    return availability
-
-
-def ensure_in_set(data: List[str], vocab: Iterable[str],) -> List[str]:
-    """
-    Ensure all elements of data are in vocab.
-
-    vocab must support the in operator
-    """
-
-    def parse(mark: str) -> str:
-        if mark not in vocab:
-            raise ValueError(f"Got invalid mark {mark} in {data}")
-        return mark
-
-    return [parse(mark) for mark in data]
