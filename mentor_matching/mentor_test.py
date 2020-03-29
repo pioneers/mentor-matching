@@ -1,6 +1,6 @@
 import csv
 
-from mentor_matching import constants
+from mentor_matching import csv_parsing
 from mentor_matching.mentor import Mentor
 
 
@@ -17,7 +17,7 @@ def test_from_string():
     assert mentor.teamsRequested == []
     assert mentor.teamsRequired == []
     assert mentor.mentorsRequired == ["Starmie"]
-    assert mentor.comfortAlone == constants.comfortAloneLevels[0]
+    assert mentor.comfortAlone == csv_parsing.comfortAloneLevels[0]
     assert mentor.transitConveniences == [
         "Inconvenient",
         "Convenient",

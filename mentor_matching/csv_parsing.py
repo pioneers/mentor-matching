@@ -3,6 +3,9 @@ Constants for parsing team and mentors from CSV
 
 Change this file to match the format of the mentor and team responses.
 """
+from typing import Iterable
+from typing import List
+
 # Basic formatting
 # how many of the rows in the mentor sheet are headers and so should be ignored
 mentorHeaderRows = 1
@@ -86,3 +89,69 @@ skillRequestLevels = [
     "2",
     "1",
 ]
+
+
+def parse_availability(
+    data: List[str],
+    slots_per_day: List[int],
+    available_mark: str,
+    unavailable_mark: str,
+) -> List[List[bool]]:
+    """
+    Parse the availability given from a subsection of a CSV row.
+
+    >>> parse_availability(
+        ["1", "0", "0", "1"],
+        [2, 2],
+        "1",
+        "0",
+    )
+    [[True, False], [False, True]]
+
+    >>> parse_availability(
+        ["present", "absent", "absent", "present"],
+        [2, 1, 1],
+        "present",
+        "absent",
+    )
+    [[True, False], [False], [True]]
+    """
+
+    if len(data) != sum(slots_per_day):
+        raise ValueError(
+            f"Expected list of length {sum(slots_per_day)} but found list of length {len(data)}"
+        )
+
+    def parse_availability_mark(mark: str) -> bool:
+        if mark == available_mark:
+            return True
+        elif mark == unavailable_mark:
+            return False
+        else:
+            raise ValueError(f"Got invalid availability mark: {mark} in {data}")
+
+    availability: List[List[bool]] = []
+
+    position = 0
+    for num_slots in slots_per_day:
+        day_data = data[position : position + num_slots]
+        day_availability = [parse_availability_mark(mark) for mark in day_data]
+        availability.append(day_availability)
+        position += num_slots
+
+    return availability
+
+
+def ensure_in_set(data: List[str], vocab: Iterable[str],) -> List[str]:
+    """
+    Ensure all elements of data are in vocab.
+
+    vocab must support the in operator
+    """
+
+    def parse(mark: str) -> str:
+        if mark not in vocab:
+            raise ValueError(f"Got invalid mark {mark} in {data}")
+        return mark
+
+    return [parse(mark) for mark in data]
