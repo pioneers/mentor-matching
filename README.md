@@ -94,7 +94,7 @@ In cases where there are multiple columns (ie, availability, transit times, etc)
 Note: I strongly recommend against trying to change the basic structure of the convex program.  It's a pain to work with, and almost all the structures I tried prior to this one had too many variables / constraints for `cvxpy` to successfully handle.  If you do have to futz with the structure, I would recommend using only linear constraints as far as possible.  Also, if you have to create a variable for every possible mentor-mentor pair (or for every mentor-mentor-team group), the program probably will not work.
 
 * Variables, constraints, and the objective function are each created in their own block in `assign.py`.
-	* Variables should be added to the list `variables`, as well as to the dictionaries `varByType`, `varByMentor`, `varByTeam`, `varByPair`, and `groupByVar` (where appropriate) for easy access later.
+	* Variables should be added to the list `variables`, as well as to the dictionaries `by_type`, `by_mentor`, `by_team`, `by_mentor_team`, and `assignment_group` (where appropriate) for easy access later.
 	* Constraints should be appended to the list `constraints`.
 	* Terms in the objective function should be appended to the list `objectiveTerms`.  The objective function is just the sum of all these terms.
 * If you modify the structure of the program, please update [Description of the Convex Program](#description-of-the-convex-program) accordingly.

@@ -1,7 +1,7 @@
 """
 Constants for parsing team and mentors from CSV
 
-This file is to later be broken down by constant usage
+Change this file to match the format of the mentor and team responses.
 """
 # Basic formatting
 # how many of the rows in the mentor sheet are headers and so should be ignored

@@ -14,8 +14,8 @@ def test_end_to_end():
     with open("data/matching_parameters.yaml") as parameters_file:
         parameters = Parameters.from_file(parameters_file)
 
-    var_set = match(mentors, teams, parameters)
-    matching = var_set.team_by_mentor()
+    assignment_set = match(mentors, teams, parameters)
+    matching = assignment_set.team_by_mentor()
     assert matching is not None
 
     expected_matching = {

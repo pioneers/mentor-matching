@@ -6,10 +6,10 @@ import pandas as pd
 import yaml
 
 from mentor_matching import constants
+from mentor_matching.assignment_set import AssignmentSet
+from mentor_matching.assignment_set import AssignmentType
 from mentor_matching.mentor import Mentor
 from mentor_matching.team import Team
-from mentor_matching.variable_set import VariableSet
-from mentor_matching.variable_set import VariableType
 
 
 class Parameters(object):
@@ -92,8 +92,8 @@ def comfort_alone_level_to_cost(
 
 
 class ObjectiveSet(object):
-    def __init__(self, var_set: VariableSet, parameters: Parameters):
-        self._var_set = var_set
+    def __init__(self, assignment_set: AssignmentSet, parameters: Parameters):
+        self._assignment_set = assignment_set
         self.parameters = parameters
         # list of terms that will be added together to make the objective function
         self._objective_terms: List[cv.expressions.expression.Expression] = []
@@ -101,17 +101,17 @@ class ObjectiveSet(object):
         self._create_group_mentor_terms()
 
     def _create_solo_mentor_terms(self) -> None:
-        for var in self._var_set.varByType[VariableType.SoloMentor]:
-            _, mentor, team = self._var_set.groupByVar[var]
+        for var in self._assignment_set.by_type[AssignmentType.SoloMentor]:
+            _, mentor, team = self._assignment_set.assignment_group[var]
             value = self.get_team_compatability(
                 mentor, team
             ) - comfort_alone_level_to_cost(self.parameters, mentor.comfortAlone)
             self._objective_terms.append(value * var)
 
     def _create_group_mentor_terms(self) -> None:
-        for var in self._var_set.varByType[VariableType.GroupMentor]:
+        for var in self._assignment_set.by_type[AssignmentType.GroupMentor]:
             # figure out which mentor and team this variable is for
-            _, mentor, team = self._var_set.groupByVar[var]
+            _, mentor, team = self._assignment_set.assignment_group[var]
             value = self.get_team_compatability(mentor, team)
             self._objective_terms.append(value * var)
 

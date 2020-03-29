@@ -60,13 +60,13 @@ def run(
     # compatability_data_frame.to_csv(compatability_matrix_output)
     # print(f"Compatibilities output to {compatability_matrix_output}")
 
-    var_set = match(mentors, teams, parameters)
+    assignment_set = match(mentors, teams, parameters)
 
-    if var_set is None:
+    if assignment_set is None:
         exit(-1)
 
     with open(matching_output, "w", newline="") as match_file:
-        var_set.write_match(match_file)
+        assignment_set.write_match(match_file)
     print(f"Matching output to {match_file}")
 
 
