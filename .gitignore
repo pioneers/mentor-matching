@@ -8,3 +8,4 @@ compatibility.csv
 .vscode/
 *.pyc
 .mypy_cache/
+data/
