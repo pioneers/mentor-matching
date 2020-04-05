@@ -15,10 +15,13 @@ There are two steps in using the mentor matching program:
 
 Key pointers:
 
+- The following should be decided prior to polling mentor and team availability, typically by the end of fall semester
 - Ask mentors and teams their availability in the same format
 - Are you adding new questions to factor into mentor matching? If so, read through [docs/data-format](docs/data-format.md) to understand how the answers to this question will be parsed. You also need to understand how the matching is optimized in `mentor_matching/object_set.py` to then modify the file with your data.
 
 ## Prepare the data on the mentors and teams
+
+The following should be prepared prior to the mentor matching meeting.
 
 Keep your environment clean with a virtual environment
 
@@ -27,6 +30,7 @@ Keep your environment clean with a virtual environment
 3. Activate the environment: `source venv/bin/activate`
 4. Install the dependencies: `pip install -r requirements.txt`
 5. Installing `cvxpy` can be difficult - it may require "Microsoft Visual C++ Build Tools". Don't be afraid to Google around or reach out to #edu/software teams for help.
+  - Linux installation error: `gcc: error trying to exec 'cc1plus' : execvp: No such file or directory` ([link](https://askubuntu.com/questions/637014/gcc-error-trying-to-exec-cc1plus-execvp-no-such-file-or-directory))
 
 Check that the program is working
 
@@ -40,8 +44,8 @@ Prepare the mentor and team data
 9. Update constants in `mentor_matching/csv_parsing.py` to reflect your data
 10. Update `mentor_matching/team.py` and `mentor_matching/mentor.py` with the ordering of your questions and any new data you've collected.
 11. Test parsing a single team and mentor by editing `mentor_matching/mentor_test.py` and `mentor_matching/team_test.py`. You can run these tests with `pytest mentor_matching/mentor_test.py`.
-12. Ensure your data contains no commas - these mess up CSVs and the parsing
 12. Save your data in `data/`
+12. Ensure your data is properly escaping any commas - Google Sheets wraps cells with commas in quotation marks. If commas are not properly escaped, you may need to replace them.
 13. Run the program to ensure that parsing all lines work: `python main.py --mentor-data data/mentors.csv --team-data data/teams.csv`
 14. Review `output/matching.csv` to ensure the program produced an actual matching
 
@@ -49,3 +53,13 @@ Practice modifying the weights
 
 15. Review what each of the weights do. Encourage all members of the mentor matching meeting to review the weights ahead of the meeting and come prepared with questions. Understanding the weights is critical to choosing them.
 16. Try modifying the weights in `data/matching_parameters.yaml` and running the program. Try using different parameters with the `--parameters` flag.
+
+## Decide on the weights to use and run the program to get the matching
+
+Tips for the day of mentor matching
+
+1. All participants should read the description of the parameters prior to the meeting
+2. Review the what each of the parameters do
+3. Decide on the non-weight parameters: such as the mininum number of mentors, maximum number of mentors - these are less controversial
+4. Rank the weights in order of importance
+5. Assign values to each of the weights
