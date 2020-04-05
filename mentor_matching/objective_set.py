@@ -1,80 +1,14 @@
-from typing import IO
 from typing import List
 
 import cvxpy as cv
 import pandas as pd
-import yaml
 
 from mentor_matching import csv_parsing
 from mentor_matching.assignment_set import AssignmentSet
 from mentor_matching.assignment_set import AssignmentType
 from mentor_matching.mentor import Mentor
+from mentor_matching.parameters import Parameters
 from mentor_matching.team import Team
-
-
-class Parameters(object):
-    """
-    Weights and other matching-related constants
-
-    These parameters will affect how we match mentors with teams.
-    """
-
-    def __init__(
-        self,
-        minNumMentors: int,
-        maxNumMentors: int,
-        minMeetingTime: int,
-        totalMeetingTime: int,
-        teamOverlapValue: int,
-        mentorOverlapValue: int,
-        noOverlapCost: int,
-        partialOverlapCost: int,
-        teamTypeMatchValue: int,
-        teamRequestedValue: int,
-        teamRequiredValue: int,
-        skillMatchValues: List[List[int]],
-        comfortAloneCosts: List[int],
-    ):
-        self.minNumMentors = minNumMentors
-        self.maxNumMentors = maxNumMentors
-        self.minMeetingTime = minMeetingTime
-        self.totalMeetingTime = totalMeetingTime
-        self.teamOverlapValue = teamOverlapValue
-        self.mentorOverlapValue = mentorOverlapValue
-        self.noOverlapCost = noOverlapCost
-        self.partialOverlapCost = partialOverlapCost
-        self.teamTypeMatchValue = teamTypeMatchValue
-        self.teamRequestedValue = teamRequestedValue
-        self.teamRequiredValue = teamRequiredValue
-        self.skillMatchValues = skillMatchValues
-        self.comfortAloneCosts = comfortAloneCosts
-
-        self.validate()
-
-    @classmethod
-    def from_file(cls, parameters_file: IO[str]):
-        """
-        Creates Parameters from a file
-
-        >>> with open("some_file.yaml") as f:
-        >>>   parameters = Parameters.from_file(f)
-        <Parameters object>
-        """
-        parsed_dict = yaml.load(parameters_file, Loader=yaml.Loader)
-        return cls(**parsed_dict)
-
-    def validate(self) -> None:
-        """
-        Ensure that parameters are valid and sane
-        """
-        if self.minNumMentors > self.maxNumMentors:
-            raise ValueError(
-                f"minNumMenotrs ({self.minNumMentors} cannot be greater than maxNumMentors ({self.maxNumMentors})"
-            )
-        if len(self.comfortAloneCosts) != len(csv_parsing.comfortAloneLevels):
-            raise ValueError(
-                f"comfortAloneCosts ({self.comfortAloneCosts}) and comfortAloneLevels {csv_parsing.comfortAloneLevels} do not match length"
-            )
 
 
 def comfort_alone_level_to_cost(
