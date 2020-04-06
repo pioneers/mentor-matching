@@ -32,7 +32,7 @@ DEFAULT_PARAMETERS_LOCATION = "data/matching_parameters.yaml"
     help="Where to write compatability matrix - which teams and mentors have compatible times",
 )
 @click.option(
-    "--parameters",
+    "--parameters-data",
     default=DEFAULT_PARAMETERS_LOCATION,
     help="Parameters YAML file location",
 )
@@ -52,8 +52,7 @@ def run(
         teams = teams_from_file(team_file)
 
     print("Reading parameters...")
-    with open(parameters_data) as parameters_file:
-        parameters = Parameters.from_file(parameters_file)
+    parameters = Parameters.from_file(parameters_data)
 
     # print("Creating compatibility file...", flush=True)
     # compatability_data_frame = create_team_compatability_data_frame(mentors, teams)
