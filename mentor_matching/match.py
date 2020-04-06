@@ -34,7 +34,7 @@ def match(
     start_time = time.time()
     prob.solve()
     end_time = time.time()
-    
+
     elapsed_time = end_time - start_time
     print(f"Time elapsed {elapsed_time:.2f}")
 
@@ -43,7 +43,7 @@ def match(
         print("Problem status:", prob.status)
         return None
 
-    print("Problem solved!")  
+    print("Problem solved!")
     print(f"Final objective value of {prob.value:.2f}")
 
     return assignment_set
