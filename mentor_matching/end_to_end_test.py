@@ -16,8 +16,7 @@ def test_end_to_end():
     with open("data/teams-example.csv") as team_file:
         teams = teams_from_file(team_file)
 
-    with open("data/matching_parameters.yaml") as parameters_file:
-        parameters = Parameters.from_file(parameters_file)
+    parameters = Parameters.from_file("data/parameters.yaml")
 
     assignment_set = match(mentors, teams, parameters)
     matching = assignment_set.team_by_mentor()

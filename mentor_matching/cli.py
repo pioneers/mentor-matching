@@ -9,7 +9,7 @@ DEFAULT_MENTOR_DATA_LOCATION = "data/mentors-example.csv"
 DEFAULT_TEAM_DATA_LOCATION = "data/teams-example.csv"
 DEFAULT_MATCHING_OUTPUT_LOCATION = "output/matching.csv"
 DEFAULT_COMPATABILITY_MATRIX_OUTPUT_LOCATION = "output/compability.csv"
-DEFAULT_PARAMETERS_LOCATION = "data/parameters.yaml"
+DEFAULT_PARAMETERS_LOCATION = "data/parameters.csv"
 
 
 @click.command()
