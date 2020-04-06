@@ -9,7 +9,7 @@ DEFAULT_MENTOR_DATA_LOCATION = "data/mentors-example.csv"
 DEFAULT_TEAM_DATA_LOCATION = "data/teams-example.csv"
 DEFAULT_MATCHING_OUTPUT_LOCATION = "output/matching.csv"
 DEFAULT_COMPATABILITY_MATRIX_OUTPUT_LOCATION = "output/compability.csv"
-DEFAULT_PARAMETERS_LOCATION = "data/matching_parameters.yaml"
+DEFAULT_PARAMETERS_LOCATION = "data/parameters.csv"
 
 
 @click.command()
@@ -32,7 +32,7 @@ DEFAULT_PARAMETERS_LOCATION = "data/matching_parameters.yaml"
     help="Where to write compatability matrix - which teams and mentors have compatible times",
 )
 @click.option(
-    "--parameters",
+    "--parameters-data",
     default=DEFAULT_PARAMETERS_LOCATION,
     help="Parameters YAML file location",
 )
@@ -52,8 +52,7 @@ def run(
         teams = teams_from_file(team_file)
 
     print("Reading parameters...")
-    with open(parameters_data) as parameters_file:
-        parameters = Parameters.from_file(parameters_file)
+    parameters = Parameters.from_file(parameters_data)
 
     # print("Creating compatibility file...", flush=True)
     # compatability_data_frame = create_team_compatability_data_frame(mentors, teams)
@@ -67,7 +66,7 @@ def run(
 
     with open(matching_output, "w", newline="") as match_file:
         assignment_set.write_match(match_file)
-    print(f"Matching output to {match_file}")
+    print(f"Matching output to {matching_output}")
 
 
 if __name__ == "__main__":

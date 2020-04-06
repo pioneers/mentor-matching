@@ -31,20 +31,19 @@ def match(
     )
 
     print("Solving problem...", flush=True)
-    startTime = time.time()
+    start_time = time.time()
     prob.solve()
-    endTime = time.time()
+    end_time = time.time()
+
+    elapsed_time = end_time - start_time
+    print(f"Time elapsed {elapsed_time:.2f}")
 
     if prob.value is None:
         print("Something went wrong in the problem solving???")
         print("Problem status:", prob.status)
-        print("Time elapsed:", endTime - startTime)
         return None
 
-    print(
-        "Problem solved!  Time elapsed: "
-        + str(endTime - startTime)
-        + "\nFinal objective value of "
-        + str(prob.value)
-    )
+    print("Problem solved!")
+    print(f"Final objective value of {prob.value:.2f}")
+
     return assignment_set
