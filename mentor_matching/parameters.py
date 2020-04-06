@@ -49,11 +49,33 @@ class Parameters(object):
         self.validate()
 
     @classmethod
+    def from_file(cls, file_name: str):
+        """
+        Create Parameters from the appropriate constructor.
+
+        Currently supports CSV and YAML
+        """
+        if file_name.endswith(".csv"):
+            with open(file_name, "r") as csv_file:
+                return cls.from_csv(csv_file)
+        elif file_name.endswith(".yaml"):
+            with open(file_name, "r") as yaml_file:
+                return cls.from_yaml(yaml_file)
+        else:
+            raise ValueError(f"Unsuported file type: {file_name}")
+
+    @classmethod
     def from_csv(cls, parameters_file: IO[str]):
         """
         Create Parameters from a CSV.
 
         Blank lines or lines that begin with '#' are ignored.
+
+        As show by the lengths of from_csv and from_yaml, parsing parameters
+        is much simpler with the standard YAML format rather than defining a
+        new one via CSV. We use CSV because CSV is the easily parseable
+        version of Google Sheets, the collaboration tool of choice for ad-hoc
+        UIs.
         """
         reader = csv.reader(parameters_file)
 
@@ -93,7 +115,7 @@ class Parameters(object):
         return cls(**fields)
 
     @classmethod
-    def from_file(cls, parameters_file: IO[str]):
+    def from_yaml(cls, parameters_file: IO[str]):
         """
         Creates Parameters from a file
 

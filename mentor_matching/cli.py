@@ -9,7 +9,7 @@ DEFAULT_MENTOR_DATA_LOCATION = "data/mentors-example.csv"
 DEFAULT_TEAM_DATA_LOCATION = "data/teams-example.csv"
 DEFAULT_MATCHING_OUTPUT_LOCATION = "output/matching.csv"
 DEFAULT_COMPATABILITY_MATRIX_OUTPUT_LOCATION = "output/compability.csv"
-DEFAULT_PARAMETERS_LOCATION = "data/matching_parameters.yaml"
+DEFAULT_PARAMETERS_LOCATION = "data/parameters.yaml"
 
 
 @click.command()
@@ -66,7 +66,7 @@ def run(
 
     with open(matching_output, "w", newline="") as match_file:
         assignment_set.write_match(match_file)
-    print(f"Matching output to {match_file}")
+    print(f"Matching output to {matching_output}")
 
 
 if __name__ == "__main__":
