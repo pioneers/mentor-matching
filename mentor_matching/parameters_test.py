@@ -1,6 +1,6 @@
 import io
 
-from mentor_matching.objective_set import Parameters
+from mentor_matching.parameters import Parameters
 
 
 def test_from_csv():
