@@ -71,3 +71,25 @@ comfortAloneCosts:
   - 500
   - 10
   - 1
+
+required_mentor_teams:
+  Scyther:
+    - Metagross
+  Nidoqueen:
+    - Swampert
+  Mew:
+    - Cacturne
+  Hitmonchan:
+    - Metagross
+
+required_mentor_mentors:
+  Snorlax:
+    - Exeggutor
+  Seadra:
+    - Lapras
+  Primeape:
+    - Starmie
+  Lapras:
+    - Seadra
+  Dodrio:
+    - Mew

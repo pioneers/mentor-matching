@@ -1,6 +1,6 @@
 from mentor_matching.match import match
 from mentor_matching.mentor import mentors_from_file
-from mentor_matching.objective_set import Parameters
+from mentor_matching.parameters import Parameters
 from mentor_matching.team import teams_from_file
 
 
@@ -17,6 +17,7 @@ def test_end_to_end():
         teams = teams_from_file(team_file)
 
     parameters = Parameters.from_file("data/parameters.yaml")
+    parameters.validate_names(mentors, teams)
 
     assignment_set = match(mentors, teams, parameters)
     matching = assignment_set.team_by_mentor()

@@ -2,7 +2,7 @@ import click
 
 from mentor_matching.match import match
 from mentor_matching.mentor import mentors_from_file
-from mentor_matching.objective_set import Parameters
+from mentor_matching.parameters import Parameters
 from mentor_matching.team import teams_from_file
 
 DEFAULT_MENTOR_DATA_LOCATION = "data/mentors-example.csv"
@@ -53,6 +53,7 @@ def run(
 
     print("Reading parameters...")
     parameters = Parameters.from_file(parameters_data)
+    parameters.validate_names(mentors, teams)
 
     # print("Creating compatibility file...", flush=True)
     # compatability_data_frame = create_team_compatability_data_frame(mentors, teams)

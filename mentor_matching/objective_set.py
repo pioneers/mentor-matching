@@ -172,9 +172,8 @@ class ObjectiveSet(object):
         If the mentor just requested the team, returns teamRequestedValue
         Else returns 0
         """
-        for teamName in mentor.teamsRequired:
-            if team.isMatch(teamName):
-                return self.parameters.teamRequiredValue
+        if self.parameters.required_mentor_team(mentor.name, team.name):
+            return self.parameters.teamRequiredValue
         for teamName in mentor.teamsRequested:
             if team.isMatch(teamName):
                 return self.parameters.teamRequestedValue

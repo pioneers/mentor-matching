@@ -17,10 +17,6 @@ class Mentor:
                             each entry corresponds to one team type
         teamsRequested: a list of the name(s) of team(s) a mentor has requested to be on (given extra weight)
                             the list is empty if no teams are requested
-        teamsRequired: a list of the name(s) of team(s) a mentor must be assigned to one of
-                            the list is empty if no teams are required
-        mentorsRequired: a list of the name(s) of other mentor(s) a mentor must be paired with
-                            the list is empty if no other mentors are required
         comfortAlone: how comfortable the mentor is mentoring alone
         transitConveniences: how convenient each transit type is, as a list of keys from transit_convenience
         skillsConfidence: how confident the mentor is in each skill, as a list of elements from skillConfidenceLevels
@@ -32,8 +28,6 @@ class Mentor:
         availability: List[List[bool]],
         team_type_requests: List[bool],
         teams_requested: List[str],
-        teams_required: List[str],
-        mentors_required: List[str],
         comfort_alone: str,
         transit_conveniences: List[str],
         skills_confidence: List[str],
@@ -42,8 +36,6 @@ class Mentor:
         self.availability = availability
         self.teamTypeRequests = team_type_requests
         self.teamsRequested = teams_requested
-        self.teamsRequired = teams_required
-        self.mentorsRequired = mentors_required
         self.comfortAlone = comfort_alone
         self.transitConveniences = transit_conveniences
         self.skillsConfidence = skills_confidence
@@ -90,14 +82,10 @@ class Mentor:
         )
         position += 1
 
-        teamsRequired = parse_multi_item_list(
-            data_row[position], csv_parsing.multiItemDelimiter
-        )
+        # skip teamsRequired
         position += 1
 
-        mentorsRequired = parse_multi_item_list(
-            data_row[position], csv_parsing.multiItemDelimiter
-        )
+        # skip mentorsRequired
         position += 1
 
         comfort_alone_level = data_row[position]
@@ -125,8 +113,6 @@ class Mentor:
             availability,
             teamTypeRequests,
             teamsRequested,
-            teamsRequired,
-            mentorsRequired,
             comfortAlone,
             transitConveniences,
             skillsConfidence,
@@ -142,16 +128,6 @@ class Mentor:
         ownName = self.name.replace(" ", "").lower()
         otherName = otherName.replace(" ", "").lower()
         return ownName == otherName
-
-    def mustPair(self, otherMentor) -> bool:
-        """
-        Returns whether or otherMentor appears in this mentor's list of mentors
-        they are required to be matched with.
-        """
-        for name in self.mentorsRequired:
-            if otherMentor.isMatch(name):
-                return True
-        return False
 
 
 def mentors_from_file(mentors_file: IO[str]) -> List[Mentor]:
