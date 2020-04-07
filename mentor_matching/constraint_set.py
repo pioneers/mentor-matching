@@ -5,7 +5,7 @@ import cvxpy as cp
 from mentor_matching.assignment_set import AssignmentSet
 from mentor_matching.assignment_set import AssignmentType
 from mentor_matching.mentor import Mentor
-from mentor_matching.objective_set import Parameters
+from mentor_matching.parameters import Parameters
 from mentor_matching.team import Team
 
 
