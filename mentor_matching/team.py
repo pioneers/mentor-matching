@@ -27,7 +27,7 @@ class Team:
         transit_times: List[int],
         skill_requests: List[str],
     ):
-        self.name = name
+        self.name = csv_parsing.Name(name)
         self.availability = availability
         self.teamTypes = team_types
         self.transitTimes = transit_times
@@ -81,15 +81,6 @@ class Team:
         position += csv_parsing.numSkills
 
         return cls(name, availability, team_types, transit_times, skill_requests)
-
-    def isMatch(self, otherName):
-        """
-        Returns whether or not this team matches the input name
-        Comparison ignores spaces and capitalization, but otherwise the names must match exactly
-        """
-        ownName = self.name.replace(" ", "").lower()
-        otherName = otherName.replace(" ", "").lower()
-        return ownName == otherName
 
 
 def teams_from_file(teams_file: IO[str]) -> List[Team]:

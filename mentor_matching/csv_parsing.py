@@ -155,3 +155,16 @@ def ensure_in_set(data: List[str], vocab: Iterable[str],) -> List[str]:
         return mark
 
     return [parse(mark) for mark in data]
+
+
+class Name(str):
+    """
+    Name defines how we want to compare names.
+
+    Ignore case and surrounding white space.
+    """
+
+    def __eq__(self, other):
+        return self.strip().lower() == other.strip().lower()
+
+    __hash__ = str.__hash__
