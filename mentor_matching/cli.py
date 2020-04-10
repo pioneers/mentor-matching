@@ -2,6 +2,7 @@ import click
 
 from mentor_matching.match import match
 from mentor_matching.mentor import mentors_from_file
+from mentor_matching.mentor import validate_team_references
 from mentor_matching.parameters import Parameters
 from mentor_matching.team import teams_from_file
 
@@ -50,6 +51,8 @@ def run(
     print("Reading team file...", flush=True)
     with open(team_data) as team_file:
         teams = teams_from_file(team_file)
+
+    validate_team_references(mentors, teams)
 
     print("Reading parameters...")
     parameters = Parameters.from_file(parameters_data)

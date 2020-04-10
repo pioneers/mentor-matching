@@ -3,6 +3,7 @@ from typing import IO
 from typing import List
 
 from mentor_matching import csv_parsing
+from mentor_matching.team import Team
 
 
 class Mentor:
@@ -165,6 +166,25 @@ def mentors_from_file(mentors_file: IO[str]) -> List[Mentor]:
             Mentor.from_list(data_row)
         )  # create a new mentor object based on each row of data
     return mentors
+
+
+def validate_team_references(mentors: List[Mentor], teams: List[Team]):
+    """
+    Validate that all requested teams are valid.
+
+    Enforces that all names are exact matches.
+    """
+    illegal_reference = False
+    team_names = {team.name for team in teams}
+    for mentor in mentors:
+        for team_name in mentor.teamsRequested:
+            if team_name not in team_names:
+                print(
+                    f"{mentor.name} requests {team_name} which is not found in the list of teams"
+                )
+                illegal_reference = True
+    if illegal_reference:
+        raise ValueError("Mentor requests team not found in list of teams")
 
 
 def parse_team_type_requests(
