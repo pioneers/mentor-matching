@@ -172,12 +172,10 @@ class ObjectiveSet(object):
         If the mentor just requested the team, returns teamRequestedValue
         Else returns 0
         """
-        for teamName in mentor.teamsRequired:
-            if team.isMatch(teamName):
-                return self.parameters.teamRequiredValue
-        for teamName in mentor.teamsRequested:
-            if team.isMatch(teamName):
-                return self.parameters.teamRequestedValue
+        if team.name in mentor.teamsRequired:
+            return self.parameters.teamRequiredValue
+        if team.name in mentor.teamsRequested:
+            return self.parameters.teamRequestedValue
         return 0
 
     def get_team_compatability(self, mentor: Mentor, team: Team) -> int:

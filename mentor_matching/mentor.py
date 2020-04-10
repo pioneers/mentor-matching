@@ -39,12 +39,12 @@ class Mentor:
         transit_conveniences: List[str],
         skills_confidence: List[str],
     ):
-        self.name = name
+        self.name = csv_parsing.Name(name)
         self.availability = availability
         self.teamTypeRequests = team_type_requests
-        self.teamsRequested = teams_requested
-        self.teamsRequired = teams_required
-        self.mentorsRequired = mentors_required
+        self.teamsRequested = [csv_parsing.Name(name) for name in teams_requested]
+        self.teamsRequired = [csv_parsing.Name(name) for name in teams_required]
+        self.mentorsRequired = [csv_parsing.Name(name) for name in mentors_required]
         self.comfortAlone = comfort_alone
         self.transitConveniences = transit_conveniences
         self.skillsConfidence = skills_confidence
@@ -133,26 +133,12 @@ class Mentor:
             skillsConfidence,
         )
 
-    def isMatch(self, otherName: str) -> bool:
-        """
-        Returns whether or not this mentor matches the input name
-
-        Comparison ignores spaces and capitalization, but otherwise the names
-        must match exactly
-        """
-        ownName = self.name.replace(" ", "").lower()
-        otherName = otherName.replace(" ", "").lower()
-        return ownName == otherName
-
-    def mustPair(self, otherMentor) -> bool:
+    def mustPair(self, other_mentor) -> bool:
         """
         Returns whether or otherMentor appears in this mentor's list of mentors
         they are required to be matched with.
         """
-        for name in self.mentorsRequired:
-            if otherMentor.isMatch(name):
-                return True
-        return False
+        return any([other_mentor.name == name for name in self.mentorsRequired])
 
 
 def mentors_from_file(mentors_file: IO[str]) -> List[Mentor]:
@@ -172,7 +158,7 @@ def validate_team_references(mentors: List[Mentor], teams: List[Team]):
     """
     Validate that all requested teams are valid.
 
-    Enforces that all names are exact matches.
+    Enforces that all names are ~matches as defined in csv_parsing.Name.
     """
     illegal_reference = False
     team_names = {team.name for team in teams}
