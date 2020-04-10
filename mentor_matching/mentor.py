@@ -138,7 +138,7 @@ class Mentor:
         Returns whether or otherMentor appears in this mentor's list of mentors
         they are required to be matched with.
         """
-        return any([other_mentor.name == name for name in self.mentorsRequired])
+        return other_mentor.name in self.mentorsRequired
 
 
 def mentors_from_file(mentors_file: IO[str]) -> List[Mentor]:
