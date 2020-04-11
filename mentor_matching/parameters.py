@@ -35,6 +35,7 @@ class Parameters(object):
         skillMatchValues: List[List[int]],
         comfortAloneCosts: List[int],
         required_mentor_groups: Optional[List[List[str]]] = None,
+        required_team_assignments: Optional[Dict[str, str]] = None,
     ):
         self.minNumMentors = minNumMentors
         self.maxNumMentors = maxNumMentors
@@ -52,6 +53,7 @@ class Parameters(object):
         self.required_partners = Parameters.create_required_partners(
             required_mentor_groups
         )
+        self.required_team_assignments = required_team_assignments
 
         self.validate()
 
@@ -166,14 +168,21 @@ class Parameters(object):
 
         return required_partners
 
+    def must_assign(self, mentor_name: str, team_name: str) -> bool:
+        """Check is a mentor must be assigned to a team."""
+        if self.required_team_assignments is None:
+            return False
+        if mentor_name not in self.required_team_assignments:
+            return False
+        return self.required_team_assignments[mentor_name] == team_name
+
     def must_pair(self, m_1: Mentor, m_2: Mentor) -> bool:
         """Performs a bidirectional check of if m_1 must be paired with m_2"""
-        try:
-            group = self.required_partners[m_2.name]
-        except KeyError:
+        if self.required_partners is None:
             return False
-        else:
-            return m_1.name in group
+        if m_2.name not in self.required_partners:
+            return False
+        return m_1.name in self.required_partners[m_2.name]
 
     def validate(self) -> None:
         """

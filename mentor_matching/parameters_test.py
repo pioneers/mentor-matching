@@ -47,3 +47,34 @@ def test_must_pair():
     assert parameters.must_pair(entity("torchic"), entity("mudkip"))
     assert not parameters.must_pair(entity("torchic"), entity("agumon"))
     assert not parameters.must_pair(entity("torchic"), entity("bulbasaur"))
+
+
+def test_must_assign():
+    assignments = {
+        "bulbasaur": "ash",
+        "squirtle": "ash",
+        "starmie": "misty",
+    }
+    parameters = Parameters(
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        [[0]],
+        list(range(5)),
+        required_team_assignments=assignments,
+    )
+    assert parameters.must_assign("bulbasaur", "ash")
+    assert parameters.must_assign("squirtle", "ash")
+    assert not parameters.must_assign("starmie", "ash")
+    assert parameters.must_assign("starmie", "misty")
+    assert not parameters.must_assign("squirtle", "misty")
+    assert not parameters.must_assign("bulbasaur", "satoshi")
+    assert not parameters.must_assign("agumon", "satoshi")
