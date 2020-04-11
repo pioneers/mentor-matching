@@ -20,7 +20,6 @@ def test_from_string():
     assert mentor.name == "Primeape"
     assert mentor.teamTypeRequests == [1, 1, 0, 0]
     assert mentor.teamsRequested == []
-    assert mentor.teamsRequired == []
     assert mentor.comfortAlone == csv_parsing.comfortAloneLevels[0]
     assert mentor.transitConveniences == [
         "Inconvenient",

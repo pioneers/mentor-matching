@@ -18,8 +18,6 @@ class Mentor:
                             each entry corresponds to one team type
         teamsRequested: a list of the name(s) of team(s) a mentor has requested to be on (given extra weight)
                             the list is empty if no teams are requested
-        teamsRequired: a list of the name(s) of team(s) a mentor must be assigned to one of
-                            the list is empty if no teams are required
         comfortAlone: how comfortable the mentor is mentoring alone
         transitConveniences: how convenient each transit type is, as a list of keys from transit_convenience
         skillsConfidence: how confident the mentor is in each skill, as a list of elements from skillConfidenceLevels
@@ -31,7 +29,6 @@ class Mentor:
         availability: List[List[bool]],
         team_type_requests: List[bool],
         teams_requested: List[str],
-        teams_required: List[str],
         comfort_alone: str,
         transit_conveniences: List[str],
         skills_confidence: List[str],
@@ -40,7 +37,6 @@ class Mentor:
         self.availability = availability
         self.teamTypeRequests = team_type_requests
         self.teamsRequested = [csv_parsing.Name(name) for name in teams_requested]
-        self.teamsRequired = [csv_parsing.Name(name) for name in teams_required]
         self.comfortAlone = comfort_alone
         self.transitConveniences = transit_conveniences
         self.skillsConfidence = skills_confidence
@@ -87,12 +83,10 @@ class Mentor:
         )
         position += 1
 
-        teamsRequired = csv_parsing.parse_multi_item_list(
-            data_row[position], csv_parsing.multiItemDelimiter
-        )
+        # Remove teams required as we declare this through Parameters
         position += 1
 
-        # Remove mentors required as we indicate this through parameters
+        # Remove mentors required as we declare this through Parameters
         position += 1
 
         comfort_alone_level = data_row[position]
@@ -120,7 +114,6 @@ class Mentor:
             availability,
             teamTypeRequests,
             teamsRequested,
-            teamsRequired,
             comfortAlone,
             transitConveniences,
             skillsConfidence,
