@@ -71,3 +71,13 @@ comfortAloneCosts:
   - 500
   - 10
   - 1
+
+required_mentor_groups:
+  - - Snorlax
+    - Exeggutor
+  - - Seadra
+    - Lapras
+  - - Primeape
+    - Starmie
+  - - Dodrio
+    - Mew

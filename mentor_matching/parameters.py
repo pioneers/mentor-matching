@@ -3,10 +3,13 @@ from typing import Any
 from typing import Dict
 from typing import IO
 from typing import List
+from typing import Optional
+from typing import Tuple
 
 import yaml
 
 from mentor_matching import csv_parsing
+from mentor_matching.mentor import Mentor
 
 
 class Parameters(object):
@@ -31,6 +34,7 @@ class Parameters(object):
         teamRequiredValue: int,
         skillMatchValues: List[List[int]],
         comfortAloneCosts: List[int],
+        required_mentor_groups: Optional[List[List[str]]] = None,
     ):
         self.minNumMentors = minNumMentors
         self.maxNumMentors = maxNumMentors
@@ -45,6 +49,9 @@ class Parameters(object):
         self.teamRequiredValue = teamRequiredValue
         self.skillMatchValues = skillMatchValues
         self.comfortAloneCosts = comfortAloneCosts
+        self.required_partners = Parameters.create_required_partners(
+            required_mentor_groups
+        )
 
         self.validate()
 
@@ -110,6 +117,14 @@ class Parameters(object):
                 fields[key] = str_vals
             elif key == "comfortAloneCosts":
                 fields[key] = list(map(int, vals))
+            elif key == "required_mentor_groups":
+                fields[key] = [
+                    csv_parsing.parse_multi_item_list(
+                        val, csv_parsing.multiItemDelimiter,
+                    )
+                    for val in vals
+                ]
+
             else:
                 raise ValueError(f"can't parse line: {line}")
         return cls(**fields)
@@ -125,6 +140,40 @@ class Parameters(object):
         """
         parsed_dict = yaml.load(parameters_file, Loader=yaml.Loader)
         return cls(**parsed_dict)
+
+    @staticmethod
+    def create_required_partners(
+        required_mentor_groups: Optional[List[List[str]]],
+    ) -> Dict[str, Tuple[str, ...]]:
+        """
+        Given a list of groups, returns a Dict that maps each mentor to a
+        tuple that contains all other mentors they must be grouped with.
+
+        The tuple will also contain the mentor themself.
+        """
+        if required_mentor_groups is None:
+            return {}
+
+        required_partners = {}
+
+        for group in required_mentor_groups:
+            for member in group:
+                if member in required_partners:
+                    raise ValueError(
+                        f"{member} is in multiple groups. Each mentor must be in at most one group"
+                    )
+                required_partners[member] = tuple(group)
+
+        return required_partners
+
+    def must_pair(self, m_1: Mentor, m_2: Mentor) -> bool:
+        """Performs a bidirectional check of if m_1 must be paired with m_2"""
+        try:
+            group = self.required_partners[m_2.name]
+        except KeyError:
+            return False
+        else:
+            return m_1.name in group
 
     def validate(self) -> None:
         """

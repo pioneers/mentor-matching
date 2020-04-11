@@ -20,8 +20,6 @@ class Mentor:
                             the list is empty if no teams are requested
         teamsRequired: a list of the name(s) of team(s) a mentor must be assigned to one of
                             the list is empty if no teams are required
-        mentorsRequired: a list of the name(s) of other mentor(s) a mentor must be paired with
-                            the list is empty if no other mentors are required
         comfortAlone: how comfortable the mentor is mentoring alone
         transitConveniences: how convenient each transit type is, as a list of keys from transit_convenience
         skillsConfidence: how confident the mentor is in each skill, as a list of elements from skillConfidenceLevels
@@ -34,7 +32,6 @@ class Mentor:
         team_type_requests: List[bool],
         teams_requested: List[str],
         teams_required: List[str],
-        mentors_required: List[str],
         comfort_alone: str,
         transit_conveniences: List[str],
         skills_confidence: List[str],
@@ -44,7 +41,6 @@ class Mentor:
         self.teamTypeRequests = team_type_requests
         self.teamsRequested = [csv_parsing.Name(name) for name in teams_requested]
         self.teamsRequired = [csv_parsing.Name(name) for name in teams_required]
-        self.mentorsRequired = [csv_parsing.Name(name) for name in mentors_required]
         self.comfortAlone = comfort_alone
         self.transitConveniences = transit_conveniences
         self.skillsConfidence = skills_confidence
@@ -86,19 +82,17 @@ class Mentor:
         position += csv_parsing.numTeamTypes
 
         # get co-mentor / team requests and requirements
-        teamsRequested = parse_multi_item_list(
+        teamsRequested = csv_parsing.parse_multi_item_list(
             data_row[position], csv_parsing.multiItemDelimiter
         )
         position += 1
 
-        teamsRequired = parse_multi_item_list(
+        teamsRequired = csv_parsing.parse_multi_item_list(
             data_row[position], csv_parsing.multiItemDelimiter
         )
         position += 1
 
-        mentorsRequired = parse_multi_item_list(
-            data_row[position], csv_parsing.multiItemDelimiter
-        )
+        # Remove mentors required as we indicate this through parameters
         position += 1
 
         comfort_alone_level = data_row[position]
@@ -127,18 +121,10 @@ class Mentor:
             teamTypeRequests,
             teamsRequested,
             teamsRequired,
-            mentorsRequired,
             comfortAlone,
             transitConveniences,
             skillsConfidence,
         )
-
-    def mustPair(self, other_mentor) -> bool:
-        """
-        Returns whether or otherMentor appears in this mentor's list of mentors
-        they are required to be matched with.
-        """
-        return other_mentor.name in self.mentorsRequired
 
 
 def mentors_from_file(mentors_file: IO[str]) -> List[Mentor]:
@@ -185,19 +171,3 @@ def parse_team_type_requests(
             raise ValueError(f"Got invalid mark {mark} in {data}")
 
     return [parse_team_type_mark(mark) for mark in data]
-
-
-def parse_multi_item_list(entry: str, multi_item_delimiter: str,) -> List[str]:
-    """
-    Split a string into elements and cleans them.
-
-    >>> parse_multi_item_list("sure; next; great", ";")
-    ["sure", "next", "great"]
-
-    >>> parse_multi_item_list("", ";")
-    []
-    """
-    if entry == "":
-        return []
-
-    return [name.strip() for name in entry.split(multi_item_delimiter)]
