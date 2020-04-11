@@ -31,7 +31,6 @@ class Parameters(object):
         partialOverlapCost: int,
         teamTypeMatchValue: int,
         teamRequestedValue: int,
-        teamRequiredValue: int,
         skillMatchValues: List[List[int]],
         comfortAloneCosts: List[int],
         required_mentor_groups: Optional[List[List[str]]] = None,
@@ -47,7 +46,6 @@ class Parameters(object):
         self.partialOverlapCost = partialOverlapCost
         self.teamTypeMatchValue = teamTypeMatchValue
         self.teamRequestedValue = teamRequestedValue
-        self.teamRequiredValue = teamRequiredValue
         self.skillMatchValues = skillMatchValues
         self.comfortAloneCosts = comfortAloneCosts
         self.required_partners = Parameters.create_required_partners(
