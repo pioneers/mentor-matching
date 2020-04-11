@@ -29,11 +29,13 @@ Keep your environment clean with a virtual environment
 2. Create a virtual environment: `virtualenv venv`
 3. Activate the environment: `source venv/bin/activate`
 4. Install the dependencies: `pip install -r requirements.txt`
+4. Activate pre-commit to keep formatting nice: `pre-commit install`
 5. Installing `cvxpy` can be difficult - it may require "Microsoft Visual C++ Build Tools". Don't be afraid to Google around or reach out to #edu/software teams for help.
   - Linux installation error: `gcc: error trying to exec 'cc1plus' : execvp: No such file or directory` ([link](https://askubuntu.com/questions/637014/gcc-error-trying-to-exec-cc1plus-execvp-no-such-file-or-directory))
 
 Check that the program is working
 
+6. Check out the parameters: `python main.py --help`
 5. Test that your installation works: `python main.py --mentor-data data/mentors-example.csv --team-data teams-example.csv`
 6. Inspect that result makes sense in `output/`
 7. Check that result is still the same previously: `pytest`

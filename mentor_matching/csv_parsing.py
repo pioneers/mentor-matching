@@ -100,6 +100,9 @@ def parse_availability(
     """
     Parse the availability given from a subsection of a CSV row.
 
+    data is a list of strings indicating availability across all time slots for
+    all days.
+
     >>> parse_availability(
         ["1", "0", "0", "1"],
         [2, 2],

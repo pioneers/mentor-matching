@@ -74,6 +74,7 @@ comfortAloneCosts:
 # together
 # Identify each mentor by name
 required_mentor_groups:
+  # Snoralx and Exeggutor must mentor the same team
   - - Snorlax
     - Exeggutor
   - - Seadra
@@ -85,5 +86,6 @@ required_mentor_groups:
 
 # A Dict where mentor is mapped to the team that they must be assigned to
 required_team_assignments:
+  # The mentor Scyther must be assigned to team Metagross
   Scyther: Metagross
   Hitmonchan: Metagross
