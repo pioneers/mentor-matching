@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+import pytest
+
 from mentor_matching.cli import DEFAULT_PARAMETERS_LOCATION
 from mentor_matching.parameters import Parameters
 
@@ -33,14 +35,13 @@ def entity(name: str):
     return m
 
 
-def test_must_pair():
+def test_must_pair(default_parameters_setup):
     mentor_groups = [
         ["bulbasaur", "charmander", "squirtle"],
         ["torchic", "mudkip"],
     ]
-    parameters = Parameters(
-        0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, [[0]], list(range(5)), mentor_groups
-    )
+    default_parameters_setup["required_mentor_groups"] = mentor_groups
+    parameters = Parameters(**default_parameters_setup)
     assert parameters.must_pair(entity("bulbasaur"), entity("charmander"))
     assert parameters.must_pair(entity("bulbasaur"), entity("squirtle"))
     assert parameters.must_pair(entity("charmander"), entity("squirtle"))
@@ -49,28 +50,34 @@ def test_must_pair():
     assert not parameters.must_pair(entity("torchic"), entity("bulbasaur"))
 
 
-def test_must_assign():
+@pytest.fixture
+def default_parameters_setup():
+    return {
+        "minNumMentors": 0,
+        "maxNumMentors": 1,
+        "minMeetingTime": 0,
+        "totalMeetingTime": 0,
+        "teamOverlapValue": 0,
+        "mentorOverlapValue": 0,
+        "noOverlapCost": 0,
+        "partialOverlapCost": 0,
+        "teamTypeMatchValue": 0,
+        "teamRequestedValue": 0,
+        "skillMatchValues": [[0]],
+        "comfortAloneCosts": list(range(5)),
+        "required_mentor_groups": None,
+        "required_team_assignments": None,
+    }
+
+
+def test_must_assign(default_parameters_setup):
     assignments = {
         "bulbasaur": "ash",
         "squirtle": "ash",
         "starmie": "misty",
     }
-    parameters = Parameters(
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        [[0]],
-        list(range(5)),
-        required_team_assignments=assignments,
-    )
+    default_parameters_setup["required_team_assignments"] = assignments
+    parameters = Parameters(**default_parameters_setup)
     assert parameters.must_assign("bulbasaur", "ash")
     assert parameters.must_assign("squirtle", "ash")
     assert not parameters.must_assign("starmie", "ash")

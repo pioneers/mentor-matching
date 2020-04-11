@@ -25,8 +25,6 @@ teamTypeMatchValue: 500
 # Team requests
 # how much value to give if a mentor requested to work with a team
 teamRequestedValue: 900
-# how much value to give if a mentor *must* be matched with this team
-teamRequiredValue: 200000
 
 # Skills
 # how much value to give depending on how confident a mentor is in a skill and how much a team wants it
@@ -72,6 +70,9 @@ comfortAloneCosts:
   - 10
   - 1
 
+# A list where each element is a group of mentors who must all be paired
+# together
+# Identify each mentor by name
 required_mentor_groups:
   - - Snorlax
     - Exeggutor
@@ -82,6 +83,7 @@ required_mentor_groups:
   - - Dodrio
     - Mew
 
+# A Dict where mentor is mapped to the team that they must be assigned to
 required_team_assignments:
   Scyther: Metagross
   Hitmonchan: Metagross
