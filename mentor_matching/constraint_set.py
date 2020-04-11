@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 import cvxpy as cp
@@ -7,6 +8,8 @@ from mentor_matching.assignment_set import AssignmentType
 from mentor_matching.mentor import Mentor
 from mentor_matching.parameters import Parameters
 from mentor_matching.team import Team
+
+logger = logging.getLogger(__name__)
 
 
 class ConstraintSet(object):
@@ -22,14 +25,23 @@ class ConstraintSet(object):
         self.constraints: List[cp.constraints.constraint.Constraint] = []
 
         self._assignment_set = assignment_set
+
         self._teams = teams
+        self._teams_by_name = {}
+        for team in self._teams:
+            self._teams_by_name[team.name] = team
+
         self._mentors = mentors
+        self._mentors_by_name = {}
+        for mentor in self._mentors:
+            self._mentors_by_name[mentor.name] = mentor
         self._parameters = parameters
 
         self.ensure_assignment_types()
         self.ensure_one_team_per_mentor()
         self.ensure_mentor_number_constraints()
         self.ensure_mentor_pairings()
+        self.ensure_required_assignments()
 
     def ensure_assignment_types(self) -> None:
         """
@@ -93,6 +105,33 @@ class ConstraintSet(object):
                 sum(solo_assignments_for_team) + sum(group_assignments_for_team)
                 <= self._parameters.maxNumMentors
             )
+
+    def ensure_required_assignments(self):
+        """
+        Ensure that mentors who are required to be assigned to a specific team
+        are assigned.
+        """
+        logger.debug("ensuring required assignments")
+        if self._parameters.required_team_assignments is None:
+            return
+
+        for (
+            mentor_name,
+            team_name,
+        ) in self._parameters.required_team_assignments.items():
+            mentor = self._mentors_by_name[mentor_name]
+            team = self._teams_by_name[team_name]
+
+            both_assignment_types = []
+            for assignment_type in AssignmentType:
+                both_assignment_types.append(
+                    self._assignment_set.by_mentor_team[
+                        (assignment_type, mentor, team)
+                    ],
+                )
+
+            self.constraints.append(sum(both_assignment_types) == 1)
+            logger.debug(f"added constraint to tie {mentor_name} and {team_name}")
 
     def ensure_mentor_pairings(self):
         """

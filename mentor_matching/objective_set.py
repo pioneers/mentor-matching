@@ -168,12 +168,9 @@ class ObjectiveSet(object):
 
     def get_team_requested_value(self, mentor: Mentor, team: Team):
         """
-        If the mentor must be matched with the team, returns teamRequiredValue
         If the mentor just requested the team, returns teamRequestedValue
         Else returns 0
         """
-        if self.parameters.must_assign(mentor.name, team.name):
-            return self.parameters.teamRequiredValue
         if team.name in mentor.teamsRequested:
             return self.parameters.teamRequestedValue
         return 0
