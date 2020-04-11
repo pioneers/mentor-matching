@@ -81,3 +81,7 @@ required_mentor_groups:
     - Starmie
   - - Dodrio
     - Mew
+
+required_team_assignments:
+  Scyther: Metagross
+  Hitmonchan: Metagross
