@@ -1,54 +1,49 @@
-import io
+from unittest.mock import MagicMock
 
+from mentor_matching.cli import DEFAULT_PARAMETERS_LOCATION
 from mentor_matching.parameters import Parameters
 
 
-def test_from_csv():
-    raw_text = """
-# Number of mentors per team,,,,,,,,,,,,,,,,,,,,,,,,,
-# minimum number of mentors that can be assigned to a team,,,,,,,,,,,,,,,,,,,,,,,,,
-minNumMentors,1,,,,,,,,,,,,,,,,,,,,,,,,
-# maximum number of mentors that can be assigned to a team,,,,,,,,,,,,,,,,,,,,,,,,,
-maxNumMentors,2,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,
-# Availability overlap,,,,,,,,,,,,,,,,,,,,,,,,,
-# minimum number of minutes a mentor's / team's availabilities need to overlap in order to count,,,,,,,,,,,,,,,,,,,,,,,,,
-minMeetingTime,60,,,,,,,,,,,,,,,,,,,,,,,,
-# how many minutes per week we want mentors to be with their teams,,,,,,,,,,,,,,,,,,,,,,,,,
-totalMeetingTime,90,,,,,,,,,,,,,,,,,,,,,,,,
-# how much each minute of availability overlap between a team and mentor is valued,,,,,,,,,,,,,,,,,,,,,,,,,
-teamOverlapValue,10,,,,,,,,,,,,,,,,,,,,,,,,
-# how much each minute of availability overlap between two mentors is valued,,,,,,,,,,,,,,,,,,,,,,,,,
-mentorOverlapValue,0,,,,,,,,,,,,,,,,,,,,,,,,
-# how much cost to incur if a mentor and team don't have any availabilities at the same times (should be very large),,,,,,,,,,,,,,,,,,,,,,,,,
-noOverlapCost,10000,,,,,,,,,,,,,,,,,,,,,,,,
-"# how much cost to incur if there is some overlap, but less than totalMeetingTime",,,,,,,,,,,,,,,,,,,,,,,,,
-partialOverlapCost,10000,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,
-# Team types,,,,,,,,,,,,,,,,,,,,,,,,,
-# how much value to give if a team is of a type the mentor wants,,,,,,,,,,,,,,,,,,,,,,,,,
-teamTypeMatchValue,500,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,
-# Team requests,,,,,,,,,,,,,,,,,,,,,,,,,
-# how much value to give if a mentor requested to work with a team,,,,,,,,,,,,,,,,,,,,,,,,,
-teamRequestedValue,900,,,,,,,,,,,,,,,,,,,,,,,,
-# how much value to give if a mentor *must* be matched with this team,,,,,,,,,,,,,,,,,,,,,,,,,
-teamRequiredValue,200000,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,
-# Skills,,,,,,,,,,,,,,,,,,,,,,,,,
-# how much value to give depending on how confident a mentor is in a skill and how much a team wants it,,,,,,,,,,,,,,,,,,,,,,,,,
-"# each subarray corresponds to a team request level, from least important to most",,,,,,,,,,,,,,,,,,,,,,,,,
-"# each entry in a subarray corresponds to a mentor confidence level, from least to most",,,,,,,,,,,,,,,,,,,,,,,,,
-skillMatchValues,0,0,0,0,0,0,15,25,40,50,0,25,50,75,100,0,50,100,150,200,0,75,150,225,300
-,,,,,,,,,,,,,,,,,,,,,,,,,
-# Comfort Cost,,,,,,,,,,,,,,,,,,,,,,,,,
-# The first element is the cost when the mentor is the least comfortable,,,,,,,,,,,,,,,,,,,,,,,,,
-# mentoring alone,,,,,,,,,,,,,,,,,,,,,,,,,
-# The last element is the cost when the mentor is the most comfortable,,,,,,,,,,,,,,,,,,,,,,,,,
-# mentoring alone.,,,,,,,,,,,,,,,,,,,,,,,,,
-# Typically this list would be in decreasing order.,,,,,,,,,,,,,,,,,,,,,,,,,
-comfortAloneCosts,1500,1000,500,10,1,,,,,,,,,,,,,,,,,,,,
-    """
-    reader = io.StringIO(raw_text)
-    parameters = Parameters.from_csv(reader)
+def test_from_yaml():
+    with open("data/parameters.yaml") as parameters_file:
+        parameters = Parameters.from_yaml(parameters_file)
     assert parameters.minNumMentors == 1
+    assert parameters.maxNumMentors == 2
+
+    assert parameters.must_pair(entity("Snorlax"), entity("Exeggutor"))
+    assert parameters.must_pair(entity("Seadra"), entity("Lapras"))
+    assert not parameters.must_pair(entity("Seadra"), entity("Bulbasaur"))
+
+
+def test_from_csv():
+    with open("data/parameters.csv") as parameters_file:
+        parameters = Parameters.from_csv(parameters_file)
+    assert parameters.minNumMentors == 1
+
+
+def test_from_default():
+    with open(DEFAULT_PARAMETERS_LOCATION) as parameters_file:
+        parameters = Parameters.from_csv(parameters_file)
+    assert parameters.minNumMentors == 1
+
+
+def entity(name: str):
+    m = MagicMock()
+    m.name = name
+    return m
+
+
+def test_must_pair():
+    mentor_groups = [
+        ["bulbasaur", "charmander", "squirtle"],
+        ["torchic", "mudkip"],
+    ]
+    parameters = Parameters(
+        0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, [[0]], list(range(5)), mentor_groups
+    )
+    assert parameters.must_pair(entity("bulbasaur"), entity("charmander"))
+    assert parameters.must_pair(entity("bulbasaur"), entity("squirtle"))
+    assert parameters.must_pair(entity("charmander"), entity("squirtle"))
+    assert parameters.must_pair(entity("torchic"), entity("mudkip"))
+    assert not parameters.must_pair(entity("torchic"), entity("agumon"))
+    assert not parameters.must_pair(entity("torchic"), entity("bulbasaur"))

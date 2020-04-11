@@ -118,7 +118,7 @@ class ConstraintSet(object):
                     # we only want to consider each pair once, so ignore the second occurrence
                     # this also ensures that we don't consider pairing a mentor with themself
                     continue
-                if mentor_1.mustPair(mentor_2) or mentor_2.mustPair(mentor_1):
+                if self._parameters.must_pair(mentor_1, mentor_2):
                     # these mentors are required to be paired, so create the constraints for them
                     # type (4) constraint
                     self.constraints.append(

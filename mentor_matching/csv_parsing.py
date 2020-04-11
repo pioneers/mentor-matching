@@ -157,6 +157,22 @@ def ensure_in_set(data: List[str], vocab: Iterable[str],) -> List[str]:
     return [parse(mark) for mark in data]
 
 
+def parse_multi_item_list(entry: str, multi_item_delimiter: str,) -> List[str]:
+    """
+    Split a string into elements and cleans them.
+
+    >>> parse_multi_item_list("sure; next; great", ";")
+    ["sure", "next", "great"]
+
+    >>> parse_multi_item_list("", ";")
+    []
+    """
+    if entry == "":
+        return []
+
+    return [name.strip() for name in entry.split(multi_item_delimiter)]
+
+
 class Name(str):
     """
     Name defines how we want to compare names.
