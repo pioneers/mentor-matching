@@ -1,9 +1,12 @@
 import csv
+import logging
 
 import pytest
 
 from mentor_matching import csv_parsing
 from mentor_matching.team import Team
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.parametrize(

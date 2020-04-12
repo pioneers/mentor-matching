@@ -1,7 +1,11 @@
+import logging
+
 from mentor_matching.match import match
 from mentor_matching.mentor import mentors_from_file
 from mentor_matching.parameters import Parameters
 from mentor_matching.team import teams_from_file
+
+logger = logging.getLogger(__name__)
 
 
 def test_end_to_end():
@@ -64,5 +68,5 @@ def test_end_to_end():
             )
 
     for err in errors:
-        print(err)
+        logger.error(err)
     assert len(errors) == 0
