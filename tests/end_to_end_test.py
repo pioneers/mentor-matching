@@ -1,11 +1,44 @@
 import logging
 
 from mentor_matching.match import match
+from mentor_matching.mentor import Mentor
 from mentor_matching.mentor import mentors_from_file
 from mentor_matching.parameters import Parameters
+from mentor_matching.team import Team
 from mentor_matching.team import teams_from_file
 
+
 logger = logging.getLogger(__name__)
+
+
+def test_no_solution(
+    default_mentor_setup, default_team_setup, default_parameters_setup
+):
+    """Try creating constraints such that there is no valid solution."""
+    default_mentor_setup["name"] = "charmander"
+    charmander = Mentor(**default_mentor_setup)
+
+    default_mentor_setup["name"] = "squirtle"
+    squirtle = Mentor(**default_mentor_setup)
+
+    mentors = [charmander, squirtle]
+
+    default_team_setup["name"] = "ash"
+    ash = Team(**default_team_setup)
+    default_team_setup["name"] = "misty"
+    misty = Team(**default_team_setup)
+    teams = [ash, misty]
+
+    # Require both mentors go to one team, even though we require all teams to
+    # have at least one mentor
+    default_parameters_setup["required_team_assignments"] = {
+        "charmander": "ash",
+        "squirtle": "ash",
+    }
+    parameters = Parameters(**default_parameters_setup)
+
+    assignment_set = match(mentors, teams, parameters)
+    assert assignment_set is None
 
 
 def test_end_to_end():

@@ -42,8 +42,10 @@ def match(
     logger.info(f"Time elapsed {elapsed_time:.2f}")
 
     if prob.value is None:
-        logger.info("Something went wrong in the problem solving???")
-        logger.info("Problem status:", prob.status)
+        logger.error(
+            "Something went wrong in the problem solving??? The required constraints may not have a valid solution. If you suspect this is the case, try adding the constraints one by one."
+        )
+        logger.error("Problem status:", prob.status)
         return None
 
     logger.info("Problem solved!")
