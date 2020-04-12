@@ -1,8 +1,6 @@
 import logging
 from unittest.mock import MagicMock
 
-import pytest
-
 from mentor_matching.cli import DEFAULT_PARAMETERS_LOCATION
 from mentor_matching.parameters import Parameters
 
@@ -51,26 +49,6 @@ def test_must_pair(default_parameters_setup):
     assert parameters.must_pair(entity("torchic"), entity("mudkip"))
     assert not parameters.must_pair(entity("torchic"), entity("agumon"))
     assert not parameters.must_pair(entity("torchic"), entity("bulbasaur"))
-
-
-@pytest.fixture
-def default_parameters_setup():
-    return {
-        "minNumMentors": 0,
-        "maxNumMentors": 1,
-        "minMeetingTime": 0,
-        "totalMeetingTime": 0,
-        "teamOverlapValue": 0,
-        "mentorOverlapValue": 0,
-        "noOverlapCost": 0,
-        "partialOverlapCost": 0,
-        "teamTypeMatchValue": 0,
-        "teamRequestedValue": 0,
-        "skillMatchValues": [[0]],
-        "comfortAloneCosts": list(range(5)),
-        "required_mentor_groups": None,
-        "required_team_assignments": None,
-    }
 
 
 def test_must_assign(default_parameters_setup):
