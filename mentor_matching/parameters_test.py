@@ -1,9 +1,12 @@
+import logging
 from unittest.mock import MagicMock
 
 import pytest
 
 from mentor_matching.cli import DEFAULT_PARAMETERS_LOCATION
 from mentor_matching.parameters import Parameters
+
+logger = logging.getLogger(__name__)
 
 
 def test_from_yaml():

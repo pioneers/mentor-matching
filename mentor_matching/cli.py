@@ -1,3 +1,5 @@
+import logging
+
 import click
 
 from mentor_matching.match import match
@@ -5,6 +7,8 @@ from mentor_matching.mentor import mentors_from_file
 from mentor_matching.mentor import validate_team_references
 from mentor_matching.parameters import Parameters
 from mentor_matching.team import teams_from_file
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_MENTOR_DATA_LOCATION = "data/mentors-example.csv"
 DEFAULT_TEAM_DATA_LOCATION = "data/teams-example.csv"
@@ -44,23 +48,23 @@ def run(
     compatability_matrix_output,
     parameters_data,
 ):
-    print("Process started!  Reading mentor file...", flush=True)
+    logger.info("Process started!  Reading mentor file...")
     with open(mentor_data) as mentorFile:
         mentors = mentors_from_file(mentorFile)
 
-    print("Reading team file...", flush=True)
+    logger.info("Reading team file...")
     with open(team_data) as team_file:
         teams = teams_from_file(team_file)
 
     validate_team_references(mentors, teams)
 
-    print("Reading parameters...")
+    logger.info("Reading parameters...")
     parameters = Parameters.from_file(parameters_data)
 
-    # print("Creating compatibility file...", flush=True)
+    # logger.info("Creating compatibility file...")
     # compatability_data_frame = create_team_compatability_data_frame(mentors, teams)
     # compatability_data_frame.to_csv(compatability_matrix_output)
-    # print(f"Compatibilities output to {compatability_matrix_output}")
+    # logger.info(f"Compatibilities output to {compatability_matrix_output}")
 
     assignment_set = match(mentors, teams, parameters)
 
@@ -69,7 +73,7 @@ def run(
 
     with open(matching_output, "w", newline="") as match_file:
         assignment_set.write_match(match_file)
-    print(f"Matching output to {matching_output}")
+    logger.info(f"Matching output to {matching_output}")
 
 
 if __name__ == "__main__":

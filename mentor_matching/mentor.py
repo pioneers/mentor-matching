@@ -1,9 +1,12 @@
 import csv
+import logging
 from typing import IO
 from typing import List
 
 from mentor_matching import csv_parsing
 from mentor_matching.team import Team
+
+logger = logging.getLogger(__name__)
 
 
 class Mentor:
@@ -144,7 +147,7 @@ def validate_team_references(mentors: List[Mentor], teams: List[Team]):
     for mentor in mentors:
         for team_name in mentor.teamsRequested:
             if team_name not in team_names:
-                print(
+                logger.error(
                     f"{mentor.name} requests {team_name} which is not found in the list of teams"
                 )
                 illegal_reference = True

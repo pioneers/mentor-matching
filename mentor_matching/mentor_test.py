@@ -1,4 +1,5 @@
 import csv
+import logging
 from typing import List
 from unittest.mock import MagicMock
 
@@ -7,6 +8,8 @@ import pytest
 from mentor_matching import csv_parsing
 from mentor_matching.mentor import Mentor
 from mentor_matching.mentor import validate_team_references
+
+logger = logging.getLogger(__name__)
 
 
 def test_from_string():
