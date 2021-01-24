@@ -3,10 +3,11 @@ A tool to facilitate mentor matching.
 
 Started by James Hulett at mentor matching February 2018.
 Further developed by Scott Numamoto and Vivien Nguyen in 2019.
-Yet more development by James Hulett in January 2020.
+Yet more development by James Hulett in January 2020 and January 2021.
 
 ### README Table of Contents
 [Usage](#usage)  
+[Choosing A Solver](#choosing-a-solver)
 [Mentor Data Format](#mentor-data-format)  
 [Team Data Format](#team-data-format)  
 [How To Modify the Input Format](#how-to-modify-the-input-format)  
@@ -19,12 +20,18 @@ Yet more development by James Hulett in January 2020.
 ### Usage
 1. Install the libraries listed in `requirements.txt`.  Note that `cvxpy` may require you to have "Microsoft Visual C++ Build Tools".  If this happens, you should probably ask someone who actually knows what they are doing how to make that work, since it's kind of a pain.
 
-2. Put mentor data in a file called `mentors.csv` and team data in a file called `teams.csv`.  Data should be formatted as described in the next
+2. If using the Gurobi solver (see the [Choosing A Solver](#choosing-a-solver) section), run `pip install -i https://pypi.gurobi.com gurobipy`.  You will also need to sign up for a (free) academic licence at https://www.gurobi.com/.
+
+3. Put mentor data in a file called `mentors.csv` and team data in a file called `teams.csv`.  Data should be formatted as described in the next
 two sections.  See `mentors-example.csv` and `teams-example.csv` for example data formatting.
 
-3. Ensure that there are no commas in any of the data.  Commas may cause the csv to be parsed incorrectly.
+4. Ensure that there are no commas in any of the data.  Commas may cause the csv to be parsed incorrectly.
 
-4. Run `assign.py`.  The matching will be output to `matching.csv`; a mentor-team compatibility matrix will be output to `compatibility.csv`.
+5. Run `assign.py`.  The matching will be output to `matching.csv`; a mentor-team compatibility matrix will be output to `compatibility.csv`.  If you want to use the Gurobi solver instead of the `cvxpy` solver, run `assign.py -g`.
+
+
+### Choosing A Solver
+When running the program, you have the choice between two solvers: Gurobi and `cvxpy`.  The default is `cvxpy`, since Gurobi requires a (free) academic licence, and so is marginally more work to set up.  However, Gurobi has advantages if running on an instance with a larger number of teams / mentors--it is generally faster, provides mid-run updates on its progress towards the optimal solution, and still outputs a (suboptimal but probably not too bad) solution if you terminate it early.  To run with the `cvxpy` solver, simply run the program as usual; to use the Gurobi solver, run it with a `-g` tag.
 
 
 ### Mentor Data Format
@@ -122,3 +129,12 @@ Note that based on how the constraints are set up, there is nothing to stop the 
 
 
 ### TODOs
+* Update structure of convex program.
+
+* Update relevant sections of README to represent new structure.
+
+* Update formatting of input files.
+
+* Write functions to compute value of single-mentor for team, shared time overlap for paired mentors.
+
+* Verify that Gurobi instructions work.

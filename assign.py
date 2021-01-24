@@ -2,12 +2,22 @@
 Main script for running mentor matching
 """
 
-import cvxpy as cp
 import utils
 from utils import Mentor, Team
 import csv
+import sys
 
 import time # for testing purposes
+
+useGurobi = False # an indicator for whether to use Gurobi (or cvxpy) as the solver
+# use -g in the command line to use Gurobi; otherwise will default to cvxpy
+if "-g" in sys.argv:
+	useGurobi = True
+
+if useGurobi:
+	import gurobipy as gp
+else:
+	import cvxpy as cp
 
 
 print("Process started!  Reading mentor file...", flush = True)
@@ -44,6 +54,10 @@ with open('compatibility.csv', 'w', newline = '') as compatFile:
 		compatWriter.writerow(mentorRow)
 print("Compatibilities output to compatibility.csv")
 
+if useGurobi:
+	print("Initializing model...", flush = True)
+	m = gp.Model()
+
 print("Creating optimization variables...", flush = True)
 variables = [] # list of all variables
 varByType = {} # map from variable type to list of variables of that type
@@ -64,7 +78,11 @@ for varType in [1, 2]:
 for varType in [1, 2]:
 	for mentor in mentors:
 		for team in teams:
-			newVar = cp.Variable(boolean = True)
+			if useGurobi:
+				newVar =  m.addVar(vtype = gp.GRB.BINARY)
+				m.update() # needed to ensure that the variable we just created can be used as a key in the groupByVar dictionary
+			else:
+				newVar = cp.Variable(boolean = True)
 			variables.append(newVar)
 			varByType[varType].append(newVar)
 			varByMentor[(varType, mentor)].append(newVar)
@@ -104,6 +122,9 @@ for mentor1 in mentors:
 				mentor1Var = varByPair[(2, mentor1, team)][0] # get type (2) variables for these mentors and this team
 				mentor2Var = varByPair[(2, mentor2, team)][0] # there will only be one variable in each list, so extract it
 				constraints.append(mentor1Var - mentor2Var >= 0) # type (5) constraint
+if useGurobi:
+	for constraint in constraints:
+		m.addConstr(constraint)
 
 print("Creating objective function...", flush = True)
 objectiveTerms = [] # list of terms that will be added together to make the objective function
@@ -118,27 +139,48 @@ for var2 in varByType[2]:
 	value = utils.getTeamCompatibility(varMentor, varTeam)
 	objectiveTerms.append(value * var2)
 objective = sum(objectiveTerms)
+if useGurobi:
+	m.setObjective(objective, gp.GRB.MAXIMIZE)
 
-print("Creating problem...", flush = True)
-prob = cp.Problem(cp.Maximize(objective), constraints)
+if not useGurobi:
+	print("Creating problem...", flush = True)
+	prob = cp.Problem(cp.Maximize(objective), constraints)
 
 print("Solving problem...", flush = True)
 startTime = time.time()
-prob.solve()
+if useGurobi:
+	m.optimize()
+else:
+	prob.solve()
 endTime = time.time()
 
-if prob.value is None:
+
+if useGurobi and m.Status not in [gp.GRB.Status.OPTIMAL, gp.GRB.Status.INTERRUPTED]:
+	# something went wrong with the Gurobi solver
+	print("Something went wrong in the problem solving???")
+	possStatuses = ["N/A", "Not Yet Solved", "Optimum Found", "Infeasible", "Infeasible or Unbounded", "Unbounded", "Optimum Worse Than Cutoff",
+						"Iteration Limit Reached", "Node Limit Reached", "Time Limit Reached", "Solution Limit Reached", "Interrupted",
+						"Numerical Instability", "Suboptimal Solution", "Something About Asynchronus Stuff", "Objective Limit Reached"]
+	print("Problem status:", possStatuses[m.Status])
+	print("Time elapsed:", endTime - startTime)
+elif (not useGurobi) and prob.value is None:
+	# something went wrong with the cvxpy solver
 	print("Something went wrong in the problem solving???")
 	print("Problem status:", prob.status)
 	print("Time elapsed:", endTime - startTime)
 else:
-	print("Problem solved!  Time elapsed: " + str(endTime - startTime) + "\nFinal objective value of " + str(prob.value))
+	# whichever solver we used succeeded
+	if useGurobi:
+		value = m.objVal
+	else:
+		value = prob.value
+	print("Problem solved!  Time elapsed: " + str(endTime - startTime) + "\nFinal objective value of " + str(value))
 	teamByMentor = {} # mapping from a mentor to the team they are assigned to
 	mentorsByTeam = {} # mapping from a team to a list of mentors assigned to that team
 	for team in teams:
 		mentorsByTeam[team] = [] # initialize all of these to empty lists so we can use append freely
 	for variable in variables:
-		if variable.value > 0.5:
+		if (useGurobi and variable.x > 0.5) or(not useGurobi and variable.value > 0.5):
 			_, varMentor, varTeam = groupByVar[variable]
 			teamByMentor[varMentor] = varTeam
 			mentorsByTeam[varTeam].append(varMentor)
