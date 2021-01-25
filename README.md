@@ -111,27 +111,29 @@ Note: I strongly recommend against trying to change the basic structure of the c
 This section describes the convex program that is used to find a matching.  Hopefully no one will ever have to read this.
 
 Variables:  
-1. One boolean variable for each mentor-team pair, representing if that mentor is paired with that team and is alone
-2. One boolean variable for each mentor-team pair, representing if that mentor AND at least one other are paired with that team
+1. One boolean variable for each mentor-team pair, representing if that mentor is paired with that team (independent of co-mentors)
+2. One boolean variable for each team, representing if that team has only one mentor
+3. One boolean variable for each mentor-team pair, representing if that mentor is paired with that team and is alone
+4. One boolean variable for each mentor-mentor-team group, representing if both those mentors are paired with the team
 
 Constraints:  
-1. The sum of a team's type 2 variables plus twice the sum of its type 1 variables must be at least 2.  This ensures that if only one mentor is assigned to the team, the program must use the corresponding type 1 variable, and not the type 2 variable.
-2. The sum of a mentor's type 1 and 2 variables is exactly 1.  This ensures that a mentor gets matched with exactly one team.
-3. The sum of a team's type 1 and 2 variables is between 1 and 2.  This ensures that a team gets an appropriate number of mentors.
-4. For every pair of mentors who are required to be together, the sum of all their type 1 variables must be zero.  This ensures that mentors who are supposed to be paired together don't end up alone.
-5. For every pair of mentors who are required to be together and for each team, the difference between the type 2 variables for those mentors and that team must be greater than or equal to zero.  This ensures that these mentors will be together, as if the second mentor is assigned to a team the first mentor isn't, that difference will be negative.  This assumes these mentors aren't assigned using type 1 variables, which the constraints of type 4 guarantee.
+1. The sum of a mentor's type 1 variables must equal 1.  This ensures that every mentor is paired with exactly one team.
+2. The sum of a team's type 1 variables must be between `utils.minNumMentors` and `utils.maxNumMentors`.  This ensures that every team is paired with an appropriate number of mentors.
+3. Letting M be the number of mentors, each team's type 2 variable must be less than or equal to (1/M) * (M + 1 - the sum of the team's type 1 variables).  This ensures that every team's type 2 variable is set to zero if it has more than one mentor assigned.
+4. Each team's type 2 variable must be greater than or equal to (2 - the sum of the team's type 1 variables).  This ensures that every team's type 2 variable is set to 1 if it has one mentor.  This will break if the sum is zero, but that cannot happen so long as `utils.minNumMentors` is strictly greater than zero.
+5. The sum of a team's type 3 variables is equal to its type 2 variable.  This ensures that type 3 variables are used if and only if there is exactly one mentor assigned to the team.
+6. Each variable of type 3 is less than or equal to the corresponding variable of type 1.  This ensures that type 3 variables are only used when the corresponding mentor and team are actually paired.
+7. Letting M be the number of mentors, the sum of a mentor-team pair's type 4 variables is at most M times its type 1 variable.  This ensures that a type 4 variable can only be set to 1 if both corresponding mentors are assigned to the corresponding team.
 
 Terms in the Objective Function:  
-1. For each type 1 variable, we have (the value of that mentor-team matching minus the cost of the mentor being alone) times the variable.
-2. For each type 2 variable, we have the value of that mentor-team matching times the variable.
+1. For each type 1 variable, we have the value of that mentor-team matching (independent of co-mentors) times the variable.
+2. For each type 3 variable, we have the value of the mentor gives the team alone times the variable.
+3. For each type 4 variable, we have the value the two mentors give the team together times the variable.
 
-Note that based on how the constraints are set up, there is nothing to stop the program from using type 1 variables when there are actually multiple mentors assigned to that team.  However, as it is currently set up, you can only incur an extra cost by doing that, so there's no reason for the program to do so.  But this does mean that we can only ever have solo-mentoring incur a cost--we can never treat it as adding value without changing the structure of the constraints.
+Note that based on how the constraints are set up, there is nothing requiring type 4 variables to be set to 1.  Hence, we need to ensure that type 4 variables can only give positive value to the program.  In particular, this means that the cost for not having time overlaps between a mentor and a school have to be charged to the type 1 variables, not to the type 3/4 ones.  Additionally, note that the type 7 constraints allow us to set all type 4 variables to 1 provided that both corresponding mentors are assigned to the corresponding team.  Hence, the value we get from type 3 objective function terms grows quadratically with the number of mentors assigned to a team.  For this reason, it is recommended that `utils.minNumMentors` and `utils.maxNumMentors` differ by at most 1.  If the difference is larger than 1, the program will likely prefer assignments that give some teams many mentors and other teams few mentors, whereas we would prefer it to assign all teams an approximately equal number of mentors.
 
 
 ### TODOs
-* Update structure of convex program.
-
-* Update relevant sections of README to represent new structure.
 
 * Update formatting of input files.
 

@@ -266,19 +266,6 @@ class Team:
 
 
 """
-Functions for finding the value of a mentor being alone with a team
-"""
-
-def getMentorAloneCost(mentor):
-	"""
-	Finds the cost of this mentor being alone based on their comfortability with that
-	"""
-	mentorComfort = mentor.comfortAlone
-	mentorIndex = aloneComfortLevels.index(mentorComfort)
-	return aloneComfortCosts[mentorIndex]
-
-
-"""
 Functions for finding the value of a mentor-team pair, independent of any co-mentors
 """
 
@@ -415,4 +402,114 @@ def getTeamCompatibility(mentor, team):
 	score += getTeamRequestedValue(mentor, team)
 
 	return score
+
+
+"""
+Functions for finding the value of a mentor-team pair if the mentor is alone.
+"""
+
+def getMentorAloneCost(mentor):
+	"""
+	Finds the cost of this mentor being alone based on their comfortability with that
+	"""
+	mentorComfort = mentor.comfortAlone
+	mentorIndex = aloneComfortLevels.index(mentorComfort)
+	return aloneComfortCosts[mentorIndex]
+
+def getSingleMentorValue(team):
+	"""
+	Finds the value (or cost if negative) of this team getting only a single mentor
+	"""
+	# TODO
+	return 0
+
+def getSkillsValueSingle(mentor, team):
+	"""
+	Finds the value this mentor alone provides to the team in terms of their skills
+	"""
+	totalValue = 0
+
+	for skill in range(numSkills):
+		mentorConfidence = mentor.skillsConfidence[skill]
+		mentorIndex = skillConfidenceLevels.index(mentorConfidence)
+		teamRequest = team.skillRequests[skill]
+		teamIndex = skillRequestLevels.index(teamRequest)
+		totalValue += skillMatchValues[teamIndex][mentorIndex]
+
+	return totalValue
+
+def getAloneCompatibility(mentor, team):
+	"""
+	Gets a "compatibility score" between a mentor and a team if the mentor is alone
+	Uses the functions defined above to compute different aspects of the score
+	"""
+	score = 0
+
+	# find cost of this mentor being alone
+	score -= getMentorAloneCost(mentor)
+
+	# find value (or cost if negative) of this team having only a single mentor
+	score += getSingleMentorValue(team)
+
+	# find value the mentor gives the team from their skills
+	score += getSkillsValueSingle(mentor, team)
+
+	return score
+
+"""
+Functions for finding the value of a mentor-mentor-team group.
+"""
+
+def getGroupOverlapValue(mentor1, mentor2, team):
+	"""
+	Finds the value of the overlap between a pair of mentors and a team.
+	TODO: decide how to quantify this
+	"""
+	# TODO
+	return 0
+
+def getMentorRequestedValue(mentor1, mentor2):
+	"""
+	Returns the value of pairing these two mentors depending of if the pair was requested / required
+	TODO: Assign values and stuff
+	"""
+	# TODO
+	return 0
+
+def getSkillsValuePair(mentor1, mentor2, team):
+	"""
+	Finds the value two mentors provide to the team in terms of their skills
+	For each skill, we take the maximum amount either mentor provides.
+	"""
+	totalValue = 0
+
+	for skill in range(numSkills):
+		mentor1Confidence = mentor1.skillsConfidence[skill]
+		mentor1Index = skillConfidenceLevels.index(mentor1Confidence)
+		mentor2Confidence = mentor2.skillsConfidence[skill]
+		mentor2Index = skillConfidenceLevels.index(mentor2Confidence)
+		teamRequest = team.skillRequests[skill]
+		teamIndex = skillRequestLevels.index(teamRequest)
+		totalValue += max(skillMatchValues[teamIndex][mentor1Index], skillMatchValues[teamIndex][mentor2Index])
+
+	return totalValue
+
+def getGroupCompatibility(mentor1, mentor2, team):
+	"""
+	Gets a "compatibility score" of a mentor-mentor-team group
+	Uses the functions defined above to compute different aspects of the score
+	"""
+	score = 0
+
+	# find value of the time overlaps of this group
+	score += getGroupOverlapValue(mentor1, mentor2, team)
+
+	# add an offset if these two mentors are requested or required to be together
+	score += getMentorRequestedValue(mentor1, mentor2)
+
+	# find value the mentors give the team from their skills
+	score += getSkillsValuePair(mentor1, mentor2, team)
+
+	return score
+
 

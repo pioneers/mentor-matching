@@ -64,9 +64,9 @@ varByType = {} # map from variable type to list of variables of that type
 varByMentor = {} # map from (variable type, mentor) to list of variables of that type for that mentor
 varByTeam = {} # map from (variable type, team) to list of variables of that type for that team
 varByPair = {} # map from (variable type, mentor, team) to list of variable of that type for that team and mentor
-groupByVar = {} # map from a variable to the (variable type, mentor, team) corresponding to it
+groupByVar = {} # map from a variable to the (variable type, list of mentors, team) corresponding to it
 # initialize varByType, varByMentor, varByTeam, and varByPair with empty lists to prevent KeyErrors later
-for varType in [1, 2]:
+for varType in [1, 2, 3, 4]:
 	varByType[varType] = []
 	for mentor in mentors:
 		varByMentor[(varType, mentor)] = []
@@ -74,8 +74,8 @@ for varType in [1, 2]:
 			varByPair[(varType, mentor, team)] = []
 	for team in teams:
 		varByTeam[(varType, team)] = []
-# create variables
-for varType in [1, 2]:
+# create variables of type 1 and 3 (one per mentor-team pair)
+for varType in [1, 3]:
 	for mentor in mentors:
 		for team in teams:
 			if useGurobi:
@@ -88,62 +88,102 @@ for varType in [1, 2]:
 			varByMentor[(varType, mentor)].append(newVar)
 			varByTeam[(varType, team)].append(newVar)
 			varByPair[(varType, mentor, team)].append(newVar)
-			groupByVar[newVar] = (varType, mentor, team)
+			groupByVar[newVar] = (varType, [mentor], team)
+# create variables of type 2 (one per team)
+for team in teams:
+	if useGurobi:
+		newVar =  m.addVar(vtype = gp.GRB.BINARY)
+		m.update() # needed to ensure that the variable we just created can be used as a key in the groupByVar dictionary
+	else:
+		newVar = cp.Variable(boolean = True)
+	variables.append(newVar)
+	varByType[2].append(newVar)
+	varByTeam[(2, team)].append(newVar)
+	groupByVar[newVar] = (2, [], team)
+#create variables of type 4 (one per mentor-mentor-team group)
+for mentor1 in mentors:
+	for mentor2 in mentors:
+		if mentor1.name >= mentor2.name:
+			continue # only consider each pair once, don't consider groups where mentor1 and mentor2 are the same
+		for team in teams:
+			if useGurobi:
+				newVar =  m.addVar(vtype = gp.GRB.BINARY)
+				m.update() # needed to ensure that the variable we just created can be used as a key in the groupByVar dictionary
+			else:
+				newVar = cp.Variable(boolean = True)
+			variables.append(newVar)
+			varByType[4].append(newVar)
+			varByMentor[(4, mentor1)].append(newVar)
+			varByMentor[(4, mentor2)].append(newVar)
+			varByTeam[(4, team)].append(newVar)
+			varByPair[(4, mentor1, team)].append(newVar)
+			varByPair[(4, mentor2, team)].append(newVar)
+			groupByVar[newVar] = (4, [mentor1, mentor2], team)
 
 print("Creating constraints...", flush = True)
 constraints = []
-# create type (1) constraints
-for team in teams:
-	typeOneVars = varByTeam[(1, team)]
-	typeTwoVars = varByTeam[(2, team)]
-	constraints.append(sum(typeTwoVars) + (2 * sum(typeOneVars)) >= 2)
-# create type (2) constraints
+# create type 1 constraints
 for mentor in mentors:
 	typeOneVars = varByMentor[(1, mentor)]
-	typeTwoVars = varByMentor[(2, mentor)]
-	constraints.append(sum(typeOneVars) + sum(typeTwoVars) == 1)
-# create type (3) constraints
+	constraints.append(sum(typeOneVars) == 1)
+# create type 2 constraints
 for team in teams:
 	typeOneVars = varByTeam[(1, team)]
-	typeTwoVars = varByTeam[(2, team)]
-	constraints.append(sum(typeOneVars) + sum(typeTwoVars) >= utils.minNumMentors)
-	constraints.append(sum(typeOneVars) + sum(typeTwoVars) <= utils.maxNumMentors)
-# create type (4) and (5) constraints
-for mentor1 in mentors:
-	for mentor2 in mentors:
-		if mentors.index(mentor1) >= mentors.index(mentor2):
-			# we only want to consider each pair once, so ignore the second occurrence
-			# this also ensures that we don't consider pairing a mentor with themself
-			continue
-		if mentor1.mustPair(mentor2) or mentor2.mustPair(mentor1):
-			# these mentors are required to be paired, so create the constraints for them
-			constraints.append(sum(varByMentor[(1, mentor1)]) + sum(varByMentor[(1, mentor2)]) == 0) # type (4) constraint
-			for team in teams:
-				mentor1Var = varByPair[(2, mentor1, team)][0] # get type (2) variables for these mentors and this team
-				mentor2Var = varByPair[(2, mentor2, team)][0] # there will only be one variable in each list, so extract it
-				constraints.append(mentor1Var - mentor2Var >= 0) # type (5) constraint
-if useGurobi:
-	for constraint in constraints:
-		m.addConstr(constraint)
+	constraints.append(sum(typeOneVars) >= utils.minNumMentors)
+	constraints.append(sum(typeOneVars) <= utils.maxNumMentors)
+# create type 3 and 4 constraints
+M = len(mentors)
+for team in teams:
+	typeTwoVar = varByTeam[(2, team)][0] # will only have a single variable in the list, so extract it
+	typeOneVars = varByTeam[(1, team)]
+	constraints.append(M * typeTwoVar <= M + 1 - sum(typeOneVars)) # type 3
+	constraints.append(typeTwoVar >= 2 - sum(typeOneVars)) # type 4
+# create type 5 constraints
+for team in teams:
+	typeTwoVar = varByTeam[(2, team)][0] # will only have a single variable in the list, so extract it
+	typeThreeVars = varByTeam[(3, team)]
+	constraints.append(sum(typeThreeVars) == typeTwoVar)
+# create type 6 constraints
+for mentor in mentors:
+	for team in teams:
+		typeOneVar = varByPair[(1, mentor, team)][0] # will only have a single variable in the list, so extract it
+		typeThreeVar = varByPair[(3, mentor, team)][0] # ditto
+		constraints.append(typeThreeVar <= typeOneVar)
+# create type 7 constraints
+M = len(mentors)
+for mentor in mentors:
+	for team in teams:
+		typeOneVar = varByPair[(1, mentor, team)][0] # will only have a single variable in the list, so extract it
+		typeFourVars = varByPair[(4, mentor, team)]
+		constraints.append(sum(typeFourVars) <= M * typeOneVar)
 
 print("Creating objective function...", flush = True)
 objectiveTerms = [] # list of terms that will be added together to make the objective function
-# create type (1) terms
+# create type 1 terms
 for var1 in varByType[1]:
-	_, varMentor, varTeam = groupByVar[var1] # figure out which mentor and team this variable is for
-	value = utils.getTeamCompatibility(varMentor, varTeam) - utils.getMentorAloneCost(varMentor)
-	objectiveTerms.append(value * var1)
-# create type (2) terms
-for var2 in varByType[2]:
-	_, varMentor, varTeam = groupByVar[var2] # figure out which mentor and team this variable is for
+	_, varMentors, varTeam = groupByVar[var1] # figure out which mentor and team this variable is for
+	varMentor = varMentors[0] # list will only have one mentor in it
 	value = utils.getTeamCompatibility(varMentor, varTeam)
-	objectiveTerms.append(value * var2)
+	objectiveTerms.append(value * var1)
+# create type 2 terms
+for var3 in varByType[3]:
+	_, varMentors, varTeam = groupByVar[var3] # figure out which mentor and team this variable is for
+	varMentor = varMentors[0] # list will only have one mentor in it
+	value = utils.getAloneCompatibility(varMentor, varTeam)
+	objectiveTerms.append(value * var3)
+# create type 3 terms
+for var4 in varByType[4]:
+	_, varMentors, varTeam = groupByVar[var4] # figure out which mentor and team this variable is for
+	value = utils.getGroupCompatibility(varMentors[0], varMentors[1], varTeam)
+	objectiveTerms.append(value * var4)
 objective = sum(objectiveTerms)
-if useGurobi:
-	m.setObjective(objective, gp.GRB.MAXIMIZE)
 
-if not useGurobi:
-	print("Creating problem...", flush = True)
+print("Creating problem...", flush = True)
+if useGurobi:
+	for constraint in constraints:
+		m.addConstr(constraint)
+	m.setObjective(objective, gp.GRB.MAXIMIZE)
+else:
 	prob = cp.Problem(cp.Maximize(objective), constraints)
 
 print("Solving problem...", flush = True)
@@ -179,9 +219,10 @@ else:
 	mentorsByTeam = {} # mapping from a team to a list of mentors assigned to that team
 	for team in teams:
 		mentorsByTeam[team] = [] # initialize all of these to empty lists so we can use append freely
-	for variable in variables:
-		if (useGurobi and variable.x > 0.5) or(not useGurobi and variable.value > 0.5):
-			_, varMentor, varTeam = groupByVar[variable]
+	for variable in varByType[1]:
+		if (useGurobi and variable.x > 0.5) or (not useGurobi and variable.value > 0.5):
+			_, varMentors, varTeam = groupByVar[variable]
+			varMentor = varMentors[0] # there will only be one mentor in this list, so extract it
 			teamByMentor[varMentor] = varTeam
 			mentorsByTeam[varTeam].append(varMentor)
 	with open('matching.csv', 'w', newline = '') as matchFile:
