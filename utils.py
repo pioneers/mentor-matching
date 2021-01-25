@@ -60,6 +60,10 @@ partialOverlapCost = 10000 # how much cost to incur if there is some overlap, bu
 # Team types
 teamTypeMatchValue = 500 # how much value to give if a team is of a type the mentor wants
 
+# Co-mentor requests
+mentorRequestedValue = 900 # how much value to give if two mentors requested to be paired
+mentorRequiredValue = 200000 # how much value to give if two mentors are required to be paired
+
 # Team requests
 teamRequestedValue = 900 # how much value to give if a mentor requested to work with a team
 teamRequiredValue = 200000 # how much value to give if a mentor *must* be matched with this team
@@ -96,6 +100,8 @@ attributes:
 						the list is empty if no teams are requested
 	teamsRequired: a list of the name(s) of team(s) a mentor must be assigned to one of
 						the list is empty if no teams are required
+	mentorsRequested: a list of the name(s) of other mentor(s) a mentor has requested to be paired with (given extra weight)
+						the list is empty of no other mentors are requested
 	mentorsRequired: a list of the name(s) of other mentor(s) a mentor must be paired with
 						the list is empty if no other mentors are required
 	comfortAlone: how comfortable the mentor is mentoring alone, as an element from aloneComfortLevels
@@ -151,6 +157,11 @@ class Mentor:
 		if dataRow[position] != "": # means the mentor is required by at least one team
 			# split up multiple team names, strip leading / trailing white space, and put into an array
 			self.teamsRequired = [name.strip() for name in dataRow[position].split(multiItemDelimiter)]
+		position += 1
+		self.mentorsRequested = []
+		if dataRow[position] != "": # means the mentor has requested to be paired with at least one other mentor
+			# split up multiple mentor names, strip leading / trailing white space, and put into an array
+			self.mentorsRequested = [name.strip() for name in dataRow[position].split(multiItemDelimiter)]
 		position += 1
 		self.mentorsRequired = []
 		if dataRow[position] != "": # means the mentor is required to be paired with at least one other mentor
@@ -495,10 +506,26 @@ def getPairOverlapValue(mentor1, mentor2, team):
 
 def getMentorRequestedValue(mentor1, mentor2):
 	"""
-	Returns the value of pairing these two mentors depending of if the pair was requested / required
-	TODO: Assign values and stuff
+	If the mentors must be matched with each other, returns mentorRequiredValue
+	If the mentors just requested to be matched, returns mentorRequestedValue
+	Else returns 0
 	"""
-	# TODO
+	for mentorName in mentor1.mentorsRequired:
+		if mentor2.isMatch(mentorName):
+			return mentorRequiredValue
+	# checking in both directions is probably unnecessary, but may as well to prevent issues arising from typos / etc in the input data
+	for mentorName in mentor2.mentorsRequired:
+		if mentor1.isMatch(mentorName):
+			return mentorRequiredValue
+
+	for mentorName in mentor1.mentorsRequested:
+		if mentor2.isMatch(mentorName):
+			return mentorRequestedValue
+	# checking in both directions is probably unnecessary, but may as well to prevent issues arising from typos / etc in the input data
+	for mentorName in mentor2.mentorsRequested:
+		if mentor1.isMatch(mentorName):
+			return mentorRequestedValue
+
 	return 0
 
 def getSkillsValuePair(mentor1, mentor2, team):

@@ -43,7 +43,8 @@ The columns should be organized as follows:
 * 4 columns for which team type(s) (eg new, small coach presence, etc) the mentor would like to work with, where a 1 represents the mentor wanting to work with that team type and a 0 represents them not.
 * 1 column for team(s) this mentor would like to be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must appear exactly as they do in `teams.csv`.
 * 1 column for team(s) this mentor *must* be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must appear exactly as they do in `teams.csv`.
-* 1 column for other mentor(s) mentor *must* be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must be exactly the same as the name given in the first column of the other mentor(s)' row.
+* 1 column for other mentor(s) this mentor would like to be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must be exactly the same as the name given in the first column of the other mentor(s)' row.
+* 1 column for other mentor(s) this mentor *must* be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must be exactly the same as the name given in the first column of the other mentor(s)' row.
 * 1 column for comfort mentoring alone (must be a number from 1 to 5, with 5 as most confident).
 * 5 columns for convenience of different transit types (each must be "Not possible", "Inconvenient", or "Convenient").
 * 5 columns for confidence in skills (each must be "Not Confident", "Somewhat", "Neutral", "Confident", or "Very Confident").
@@ -135,10 +136,6 @@ Note that based on how the constraints are set up, there is nothing requiring ty
 
 
 ### TODOs
-
-* Update formatting of input files.
-
-* Write functions to compute value of single-mentor for team, shared time overlap for paired mentors.
 
 * Verify that Gurobi instructions work.
 
