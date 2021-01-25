@@ -50,8 +50,10 @@ maxNumMentors = 2 # maximum number of mentors that can be assigned to a team
 # Availability overlap
 minMeetingTime = 60 # minimum number of minutes a mentor's / team's availabilities need to overlap in order to count
 totalMeetingTime = 90 # how many minutes per week we want mentors to be with their teams
-teamOverlapValue = 10 # how much each minute of availability overlap between a team and mentor is valued
-mentorOverlapValue = 0 # how much each minute of availability overlap between two mentors is valued
+singleOverlapValue = 10 # how much each minute of availability overlap between a team and mentor is valued
+pairOverlapValue = 2 # how much each minute of availability overlap between a team and *two* mentors is valued (on top of the value from each mentor individually)
+					 # note that the program calculates the amount of this overlap optimistically, ie ignoring travel time and the minimum meeting length
+					 # for this reason, the value should probably be a bit smaller than you might otherwise expect
 noOverlapCost = 10000 # how much cost to incur if a mentor and team don't have any availabilities at the same times (should be very large)
 partialOverlapCost = 10000 # how much cost to incur if there is some overlap, but less than totalMeetingTime
 
@@ -285,12 +287,12 @@ class Team:
 Functions for finding the value of a mentor-team pair, independent of any co-mentors
 """
 
-def getTeamOverlapValue(mentor, team, transitType):
+def getSingleOverlapValue(mentor, team, transitType):
 	"""
 	Measures how well the availability of a mentor's and team's availabilities overlap
 	Assumes the mentor uses input transit type, which is an integer in range(numTransitTypes)
 	Finds the total amount of overlap (minus travel time for the mentor), but an overlap must be for at least minMeetingTime to count
-	Value is then total overlap time multiplied by teamOverlapValue and the transit convenience weight for that mentor and transit type
+	Value is then total overlap time multiplied by singleOverlapValue and the transit convenience weight for that mentor and transit type
 	If the transit type weight is zero for the mentor, returns -noOverlapCost
 	If total overlap is zero, returns -noOverlapCost
 	If total overlap is non-zero but less than totalMeetingTime, charges partialOverlapCost to the value (after weighting)
@@ -355,7 +357,7 @@ def getTeamOverlapValue(mentor, team, transitType):
 	# find the weight of this transit type for this mentor
 	convenience = mentor.transitConveniences[transitType]
 	weight = transitConvenienceWeights[transitConvenienceLevels.index(convenience)] # index between the weights and levels lists are the same
-	value = totalOverlap * teamOverlapValue * weight
+	value = totalOverlap * singleOverlapValue * weight
 
 	if weight == 0:
 		# this transit type is not good for this mentor, so treat it as if there were no overlap
@@ -408,7 +410,7 @@ def getTeamCompatibility(mentor, team):
 	bestOverlap = -noOverlapCost # baseline to beat is no overlap at all
 	for transitType in range(numTypesTransit):
 		# check if this transit type is better than previous best and update if needed
-		bestOverlap = max(bestOverlap, getTeamOverlapValue(mentor, team, transitType))
+		bestOverlap = max(bestOverlap, getSingleOverlapValue(mentor, team, transitType))
 	score += bestOverlap
 
 	# find value from team type matches
@@ -477,13 +479,19 @@ def getAloneCompatibility(mentor, team):
 Functions for finding the value of a mentor-mentor-team group.
 """
 
-def getGroupOverlapValue(mentor1, mentor2, team):
+def getPairOverlapValue(mentor1, mentor2, team):
 	"""
 	Finds the value of the overlap between a pair of mentors and a team.
-	TODO: decide how to quantify this
+	Currently, this value is calculated optimistically--that is, when calculating how much overlap time there is, we don't consider travel time,
+		nor do we require that an overlap is of a minimum length to qualify.
+	TODO: consider calculating this in a less overly-optimistic way
 	"""
-	# TODO
-	return 0
+	totalOverlap = 0
+	for day in range(7):
+		for slotNum in range(slotsPerDay[day]):
+			if mentor1.availability[day][slotNum] and mentor2.availability[day][slotNum] and team.availability[day][slotNum]:
+				totalOverlap += minutesPerSlot
+	return totalOverlap * pairOverlapValue
 
 def getMentorRequestedValue(mentor1, mentor2):
 	"""
@@ -519,7 +527,7 @@ def getGroupCompatibility(mentor1, mentor2, team):
 	score = 0
 
 	# find value of the time overlaps of this group
-	score += getGroupOverlapValue(mentor1, mentor2, team)
+	score += getPairOverlapValue(mentor1, mentor2, team)
 
 	# add an offset if these two mentors are requested or required to be together
 	score += getMentorRequestedValue(mentor1, mentor2)

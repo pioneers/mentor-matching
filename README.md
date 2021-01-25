@@ -141,3 +141,7 @@ Note that based on how the constraints are set up, there is nothing requiring ty
 * Write functions to compute value of single-mentor for team, shared time overlap for paired mentors.
 
 * Verify that Gurobi instructions work.
+
+* Calculate the amount of availability overlap between a team and two mentors in a less overly-optimistic way.
+
+* Offset objective function so that a solution that doesn't satisfy all constraints has a negative score.
