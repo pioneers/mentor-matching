@@ -58,6 +58,7 @@ The columns should be organized as follows:
 * 1 column for team name.
 * 70 columns for availability, where a 1 represents the team being available in that time slot and a 0 represents them being unavailable.
 * 4 columns for which team type (eg new, small coach presence, etc) this team is, where a 1 represents the team being that type and a 0 represents the team not being that type.
+* 1 column for how good/bad it would be for this team to get only one mentor (must be "Bad", "Neutral", or "Good")
 * 5 columns for how long each travel method would take, as an integer number of minutes.  If the team plans on working with their mentor(s) on the Berkeley campus, put in 0 for these columns.
 * 5 columns for how much the team wants the different skills (each must be "Not at all", "Somewhat", or "Very").
 

@@ -20,17 +20,22 @@ teamTypeYesMark = "1" # what will appear if a mentor wants a team type / a team 
 teamTypeNoMark = "0" # what will appear if a mentor doesn't want a team type / the team isn't that type
 
 # Mentoring alone
-aloneComfortLevels = ["1", "2", "3", "4", "5"] # comfort levels mentors can put down for mentoring alone
+aloneComfortLevels = ["1", "2", "3", "4", "5"] # comfort levels mentors can put down for mentoring alone 
+											   # should be arranged from least to most comfortable
+singleMentorLevels = ["Bad", "Neutral", "Good"] # request levels assigned to teams for how good/bad it would be to give them only a single mentor 
+												# should be arranged from bad to good
 
 # Transit
 numTypesTransit = 5 # number of different types of transit we ask mentors / teams about
-transitConvenienceLevels = ["Not possible", "Inconvenient", "Convenient"] # convenience levels mentors can put down for transit types
+transitConvenienceLevels = ["Not possible", "Inconvenient", "Convenient"] # convenience levels mentors can put down for transit types 
+																		  # should be arranged from least to most convenient
 
 # Skills
 numSkills = 2 # how many skills we ask mentors for confidence in / teams for how much they want
 skillConfidenceLevels = ["Not Confident", "Somewhat", "Neutral", "Confident", "Very Confident"] # confidence levels mentors can put down for skills
 																								# should be arranged from least to most confident
-skillRequestLevels = ["5", "4", "3", "2", "1"] # levels that teams can say they want mentors with a given school, from least to most
+skillRequestLevels = ["5", "4", "3", "2", "1"] # levels that teams can say they want mentors with a given school
+											   # should be arranged from from least to most requested
 
 
 """
@@ -60,6 +65,9 @@ teamRequiredValue = 200000 # how much value to give if a mentor *must* be matche
 # Mentoring alone
 aloneComfortCosts = [1500, 1000, 500, 10, 1] # how much cost to incur for mentoring alone based on comfort level
 											 # note that the order of this must match that of aloneComfortLevels (from above)
+singleMentorCosts = [500, 0, -200]  # how much cost to incur if a team only has one mentor
+									# note that the order of this must match that of singleMentorValueLevels (from above)
+									# negative costs correspond to giving value if a team is only assigned one mentor
 
 # Transit
 transitConvenienceWeights = [0, 0.6, 1] # how much the value of an overlap should be weighted based on convenience of transit required
@@ -197,6 +205,7 @@ attributes:
 					each sublist corresponds to one day, and has a boolean value for each slot
 	teamTypes: whether the team falls into each team type, as a boolean list
 						each entry corresponds to one team type
+	singleMentorLevel: how much this team wants / doesn't want to have a single mentor, as an element from singleMentorLevels
 	transitTimes: how long each transit type would take in minutes, as a list integers
 	skillRequests: how much the team wants each skill, as a list of elements from skillRequestLevels
 """
@@ -238,6 +247,12 @@ class Team:
 			else:
 				raise ValueError("Got invalid value " + dataRow[position] + " for " + self.name + "'s team type in column " + str(position + 1))
 			position += 1
+
+		# get single mentor level
+		if dataRow[position] not in singleMentorLevels:
+			raise ValueError("Got invalid value " + dataRow[position] + " for " + self.name + "'s single mentor level in column " + str(position + 1))
+		self.singleMentorLevel = dataRow[position]
+		position += 1
 
 		# get transit times
 		self.transitTimes = []
@@ -417,12 +432,13 @@ def getMentorAloneCost(mentor):
 	mentorIndex = aloneComfortLevels.index(mentorComfort)
 	return aloneComfortCosts[mentorIndex]
 
-def getSingleMentorValue(team):
+def getSingleMentorCost(team):
 	"""
-	Finds the value (or cost if negative) of this team getting only a single mentor
+	Finds the cost (or value if negative) of this team getting only a single mentor
 	"""
-	# TODO
-	return 0
+	teamLevel = team.singleMentorLevel
+	teamIndex = singleMentorLevels.index(teamLevel)
+	return singleMentorCosts[teamIndex]
 
 def getSkillsValueSingle(mentor, team):
 	"""
@@ -450,7 +466,7 @@ def getAloneCompatibility(mentor, team):
 	score -= getMentorAloneCost(mentor)
 
 	# find value (or cost if negative) of this team having only a single mentor
-	score += getSingleMentorValue(team)
+	score -= getSingleMentorCost(team)
 
 	# find value the mentor gives the team from their skills
 	score += getSkillsValueSingle(mentor, team)
