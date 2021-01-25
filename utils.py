@@ -38,8 +38,9 @@ Weights and other matching-related constants
 """
 
 # Number of mentors per team
-minNumMentors = 1 # minimum number of mentors that can be assigned to a team
+minNumMentors = 1 # minimum number of mentors that can be assigned to a team; must be strictly greater than zero or else things will break
 maxNumMentors = 2 # maximum number of mentors that can be assigned to a team
+# it is recommended that these two numbers have a difference of at most 1, since otherwise the program may be incentivized to assign some teams the maximum number of mentors at the cost of assigning other teams the minimum number (which is probably not what we want)
 
 # Availability overlap
 minMeetingTime = 60 # minimum number of minutes a mentor's / team's availabilities need to overlap in order to count
