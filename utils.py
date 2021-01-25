@@ -54,19 +54,19 @@ singleOverlapValue = 10 # how much each minute of availability overlap between a
 pairOverlapValue = 2 # how much each minute of availability overlap between a team and *two* mentors is valued (on top of the value from each mentor individually)
 					 # note that the program calculates the amount of this overlap optimistically, ie ignoring travel time and the minimum meeting length
 					 # for this reason, the value should probably be a bit smaller than you might otherwise expect
-noOverlapCost = 10000 # how much cost to incur if a mentor and team don't have any availabilities at the same times (should be very large)
-partialOverlapCost = 10000 # how much cost to incur if there is some overlap, but less than totalMeetingTime
+noOverlapCost = 100000 # how much cost to incur if a mentor and team don't have any availabilities at the same times (should be very large)
+partialOverlapCost = 100000 # how much cost to incur if there is some overlap, but less than totalMeetingTime
 
 # Team types
 teamTypeMatchValue = 500 # how much value to give if a team is of a type the mentor wants
 
 # Co-mentor requests
 mentorRequestedValue = 900 # how much value to give if two mentors requested to be paired
-mentorRequiredValue = 200000 # how much value to give if two mentors are required to be paired
+mentorRequiredValue = 500000 # how much value to give if two mentors are required to be paired
 
 # Team requests
 teamRequestedValue = 900 # how much value to give if a mentor requested to work with a team
-teamRequiredValue = 200000 # how much value to give if a mentor *must* be matched with this team
+teamRequiredValue = 500000 # how much value to give if a mentor *must* be matched with this team
 
 # Mentoring alone
 aloneComfortCosts = [1500, 1000, 500, 10, 1] # how much cost to incur for mentoring alone based on comfort level
@@ -292,6 +292,15 @@ class Team:
 		ownName = self.name.replace(" ", "").lower()
 		otherName = otherName.replace(" ", "").lower()
 		return ownName == otherName
+
+	def mustAssign(self, mentor):
+		"""
+		Returns whether or not mentor must be assigned to this team (ie, if this team is in mentor.teamsRequired)
+		"""
+		for tName in mentor.teamsRequired:
+			if self.isMatch(tName):
+				return True
+		return False
 
 
 """

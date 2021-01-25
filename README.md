@@ -29,6 +29,8 @@ two sections.  See `mentors-example.csv` and `teams-example.csv` for example dat
 
 5. Run `assign.py`.  The matching will be output to `matching.csv`; a mentor-team compatibility matrix will be output to `compatibility.csv`.  If you want to use the Gurobi solver instead of the `cvxpy` solver, run `assign.py -g`.
 
+6. On finishing, `assign.py` will print out the value of the solution it found.  If this value is negative, you should manually check the matching to see what's going on and if it needs fixing; it probably means that either (i) a mentor was assigned to a team that they have insufficient time overlap with, (ii) a mentor was not assigned to a team they were required to be assigned to, or (iii) mentors who were required to be assigned together are not.  If this does happen, the two most likely culprits are either (i) a mentor was required to be paired with a team they have insufficient time overlap with (fix by removing that requirement, or just ignore it if we know it won't be an issue), or (ii) there is no matching such that every mentor is paired with a team they have sufficient time overlap with (no easy fix, other than potentially bugging mentors / teams to give us more availabilities to work with).
+
 
 ### Choosing A Solver
 When running the program, you have the choice between two solvers: Gurobi and `cvxpy`.  The default is `cvxpy`, since Gurobi requires a (free) academic licence, and so is marginally more work to set up.  However, Gurobi has advantages if running on an instance with a larger number of teams / mentors--it is generally faster, provides mid-run updates on its progress towards the optimal solution, and still outputs a (suboptimal but probably not too bad) solution if you terminate it early.  To run with the `cvxpy` solver, simply run the program as usual; to use the Gurobi solver, run it with a `-g` tag.
@@ -131,6 +133,7 @@ Terms in the Objective Function:
 1. For each type 1 variable, we have the value of that mentor-team matching (independent of co-mentors) times the variable.
 2. For each type 3 variable, we have the value of the mentor gives the team alone times the variable.
 3. For each type 4 variable, we have the value the two mentors give the team together times the variable.
+4. For each pair of mentors that must be together, subtract `utils.mentorRequiredValue`.  Similarly, for each mentor that must be with a specific team, subtract `utils.teamRequiredValue`.  Note that these offsets are independent of the solution, and so won't change the optimum; their only purpose is to make it such that solutions that don't satisfy all requirements have a negative value, making it easier to spot if this happens.
 
 Note that based on how the constraints are set up, there is nothing requiring type 4 variables to be set to 1.  Hence, we need to ensure that type 4 variables can only give positive value to the program.  In particular, this means that the cost for not having time overlaps between a mentor and a school have to be charged to the type 1 variables, not to the type 3/4 ones.  Additionally, note that the type 7 constraints allow us to set all type 4 variables to 1 provided that both corresponding mentors are assigned to the corresponding team.  Hence, the value we get from type 3 objective function terms grows quadratically with the number of mentors assigned to a team.  For this reason, it is recommended that `utils.minNumMentors` and `utils.maxNumMentors` differ by at most 1.  If the difference is larger than 1, the program will likely prefer assignments that give some teams many mentors and other teams few mentors, whereas we would prefer it to assign all teams an approximately equal number of mentors.
 
@@ -140,5 +143,3 @@ Note that based on how the constraints are set up, there is nothing requiring ty
 * Verify that Gurobi instructions work.
 
 * Calculate the amount of availability overlap between a team and two mentors in a less overly-optimistic way.
-
-* Offset objective function so that a solution that doesn't satisfy all constraints has a negative score.

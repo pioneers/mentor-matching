@@ -79,7 +79,7 @@ for varType in [1, 3]:
 	for mentor in mentors:
 		for team in teams:
 			if useGurobi:
-				newVar =  m.addVar(vtype = gp.GRB.BINARY)
+				newVar = m.addVar(vtype = gp.GRB.BINARY)
 				m.update() # needed to ensure that the variable we just created can be used as a key in the groupByVar dictionary
 			else:
 				newVar = cp.Variable(boolean = True)
@@ -92,7 +92,7 @@ for varType in [1, 3]:
 # create variables of type 2 (one per team)
 for team in teams:
 	if useGurobi:
-		newVar =  m.addVar(vtype = gp.GRB.BINARY)
+		newVar = m.addVar(vtype = gp.GRB.BINARY)
 		m.update() # needed to ensure that the variable we just created can be used as a key in the groupByVar dictionary
 	else:
 		newVar = cp.Variable(boolean = True)
@@ -107,7 +107,7 @@ for mentor1 in mentors:
 			continue # only consider each pair once, don't consider groups where mentor1 and mentor2 are the same
 		for team in teams:
 			if useGurobi:
-				newVar =  m.addVar(vtype = gp.GRB.BINARY)
+				newVar = m.addVar(vtype = gp.GRB.BINARY)
 				m.update() # needed to ensure that the variable we just created can be used as a key in the groupByVar dictionary
 			else:
 				newVar = cp.Variable(boolean = True)
@@ -176,7 +176,22 @@ for var4 in varByType[4]:
 	_, varMentors, varTeam = groupByVar[var4] # figure out which mentor and team this variable is for
 	value = utils.getGroupCompatibility(varMentors[0], varMentors[1], varTeam)
 	objectiveTerms.append(value * var4)
-objective = sum(objectiveTerms)
+# create type 4 term
+numMentorReqs = 0 # how many pairs of mentors are required to be paired
+for mentor1 in mentors:
+	for mentor2 in mentors:
+		if mentor1.name >= mentor2.name:
+			continue # only consider each pair once, don't consider a mentor with themselves
+		if mentor1.mustPair(mentor2) or mentor2.mustPair(mentor1):
+			numMentorReqs += 1
+numTeamReqs = 0 # how many mentors must be paired with a team
+for mentor in mentors:
+	for team in teams:
+		if team.mustAssign(mentor):
+			numTeamReqs += 1
+			break # make sure we don't count this mentor twice if they have multiple required teams
+offset = (numMentorReqs * utils.mentorRequiredValue) + (numTeamReqs * utils.teamRequiredValue)
+objective = sum(objectiveTerms) - offset
 
 print("Creating problem...", flush = True)
 if useGurobi:
