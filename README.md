@@ -20,7 +20,7 @@ Yet more development by James Hulett in January 2020 and January 2021.
 ### Usage
 1. Install the libraries listed in `requirements.txt`.  Note that `cvxpy` may require you to have "Microsoft Visual C++ Build Tools".  If this happens, you should probably ask someone who actually knows what they are doing how to make that work, since it's kind of a pain.
 
-2. If using the Gurobi solver (see the [Choosing A Solver](#choosing-a-solver) section), run `pip install -i https://pypi.gurobi.com gurobipy`.  You will also need to sign up for a (free) academic licence at https://www.gurobi.com/.
+2. If using the Gurobi solver (see the [Choosing A Solver](#choosing-a-solver) section), run `pip install -i https://pypi.gurobi.com gurobipy`.  You will also need to sign up for a (free) academic license at https://www.gurobi.com/downloads/end-user-license-agreement-academic/.  TODO: Check if you need to be on AirBears to get the license.
 
 3. Put mentor data in a file called `mentors.csv` and team data in a file called `teams.csv`.  Data should be formatted as described in the next
 two sections.  See `mentors-example.csv` and `teams-example.csv` for example data formatting.
@@ -33,7 +33,7 @@ two sections.  See `mentors-example.csv` and `teams-example.csv` for example dat
 
 
 ### Choosing A Solver
-When running the program, you have the choice between two solvers: Gurobi and `cvxpy`.  The default is `cvxpy`, since Gurobi requires a (free) academic licence, and so is marginally more work to set up.  However, Gurobi has advantages if running on an instance with a larger number of teams / mentors--it is generally faster, provides mid-run updates on its progress towards the optimal solution, and still outputs a (suboptimal but probably not too bad) solution if you terminate it early.  To run with the `cvxpy` solver, simply run the program as usual; to use the Gurobi solver, run it with a `-g` tag.
+When running the program, you have the choice between two solvers: Gurobi and `cvxpy`.  The default is `cvxpy`, since Gurobi requires a (free) academic license, and so is marginally more work to set up.  However, Gurobi has advantages if running on an instance with a larger number of teams / mentors--it is generally faster, provides mid-run updates on its progress towards the optimal solution, and still outputs a (suboptimal but probably not too bad) solution if you terminate it early.  To run with the `cvxpy` solver, simply run the program as usual; to use the Gurobi solver, run it with a `-g` tag.
 
 
 ### Mentor Data Format
