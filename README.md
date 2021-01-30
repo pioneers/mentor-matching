@@ -7,7 +7,6 @@ Yet more development by James Hulett in January 2020 and January 2021.
 
 ### README Table of Contents
 [Usage](#usage)  
-[Choosing A Solver](#choosing-a-solver)
 [Mentor Data Format](#mentor-data-format)  
 [Team Data Format](#team-data-format)  
 [How To Modify the Input Format](#how-to-modify-the-input-format)  
@@ -18,22 +17,19 @@ Yet more development by James Hulett in January 2020 and January 2021.
 
 
 ### Usage
-1. Install the libraries listed in `requirements.txt`.  Note that `cvxpy` may require you to have "Microsoft Visual C++ Build Tools".  If this happens, you should probably ask someone who actually knows what they are doing how to make that work, since it's kind of a pain.
 
-2. If using the Gurobi solver (see the [Choosing A Solver](#choosing-a-solver) section), run `pip install -i https://pypi.gurobi.com gurobipy`.  You will also need to sign up for a (free) academic license at https://www.gurobi.com/downloads/end-user-license-agreement-academic/.  TODO: Check if you need to be on AirBears to get the license.
+1. Run `pip install -i https://pypi.gurobi.com gurobipy`.
+
+2. Follow the instructions [here](https://www.gurobi.com/academia/academic-program-and-licenses/) under "Individual Academic Licenses" to sign up for a (free) academic license for Gurobi.
 
 3. Put mentor data in a file called `mentors.csv` and team data in a file called `teams.csv`.  Data should be formatted as described in the next
 two sections.  See `mentors-example.csv` and `teams-example.csv` for example data formatting.
 
 4. Ensure that there are no commas in any of the data.  Commas may cause the csv to be parsed incorrectly.
 
-5. Run `assign.py`.  The matching will be output to `matching.csv`; a mentor-team compatibility matrix will be output to `compatibility.csv`.  If you want to use the Gurobi solver instead of the `cvxpy` solver, run `assign.py -g`.
+5. Run `assign.py`.  The matching will be output to `matching.csv`; a mentor-team compatibility matrix will be output to `compatibility.csv`.
 
 6. On finishing, `assign.py` will print out the value of the solution it found.  If this value is negative, you should manually check the matching to see what's going on and if it needs fixing; it probably means that either (i) a mentor was assigned to a team that they have insufficient time overlap with, (ii) a mentor was not assigned to a team they were required to be assigned to, or (iii) mentors who were required to be assigned together are not.  If this does happen, the two most likely culprits are either (i) a mentor was required to be paired with a team they have insufficient time overlap with (fix by removing that requirement, or just ignore it if we know it won't be an issue), or (ii) there is no matching such that every mentor is paired with a team they have sufficient time overlap with (no easy fix, other than potentially bugging mentors / teams to give us more availabilities to work with).
-
-
-### Choosing A Solver
-When running the program, you have the choice between two solvers: Gurobi and `cvxpy`.  The default is `cvxpy`, since Gurobi requires a (free) academic license, and so is marginally more work to set up.  However, Gurobi has advantages if running on an instance with a larger number of teams / mentors--it is generally faster, provides mid-run updates on its progress towards the optimal solution, and still outputs a (suboptimal but probably not too bad) solution if you terminate it early.  To run with the `cvxpy` solver, simply run the program as usual; to use the Gurobi solver, run it with a `-g` tag.
 
 
 ### Mentor Data Format
@@ -102,8 +98,6 @@ In cases where there are multiple columns (ie, availability, transit times, etc)
 
 
 ### How To Modify the Convex Program
-Note: I strongly recommend against trying to change the basic structure of the convex program.  It's a pain to work with, and almost all the structures I tried prior to this one had too many variables / constraints for `cvxpy` to successfully handle.  If you do have to futz with the structure, I would recommend using only linear constraints as far as possible.  Also, if you have to create a variable for every possible mentor-mentor pair (or for every mentor-mentor-team group), the program probably will not work.
-
 * Variables, constraints, and the objective function are each created in their own block in `assign.py`.
 	* Variables should be added to the list `variables`, as well as to the dictionaries `varByType`, `varByMentor`, `varByTeam`, `varByPair`, and `groupByVar` (where appropriate) for easy access later.
 	* Constraints should be appended to the list `constraints`.
@@ -139,7 +133,5 @@ Note that based on how the constraints are set up, there is nothing requiring ty
 
 
 ### TODOs
-
-* Verify that Gurobi instructions work.
 
 * Calculate the amount of availability overlap between a team and two mentors in a less overly-optimistic way.
