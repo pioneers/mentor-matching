@@ -37,15 +37,15 @@ There should be one header row (which will be ignored), and every row thereafter
 
 The columns should be organized as follows:
 * 1 column for mentor name.
-* 70 columns for availability, where a 1 represents the mentor being available in that time slot and a 0 represents them being unavailable.
+* 168 columns for availability, where a 1 represents the mentor being available in that time slot and a 0 represents them being unavailable.
 * 4 columns for which team type(s) (eg new, small coach presence, etc) the mentor would like to work with, where a 1 represents the mentor wanting to work with that team type and a 0 represents them not.
 * 1 column for team(s) this mentor would like to be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must appear exactly as they do in `teams.csv`.
 * 1 column for team(s) this mentor *must* be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must appear exactly as they do in `teams.csv`.
 * 1 column for other mentor(s) this mentor would like to be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must be exactly the same as the name given in the first column of the other mentor(s)' row.
 * 1 column for other mentor(s) this mentor *must* be matched with, separated by a semicolon if there are multiple (blank if none).  Any such names must be exactly the same as the name given in the first column of the other mentor(s)' row.
 * 1 column for comfort mentoring alone (must be a number from 1 to 5, with 5 as most confident).
-* 5 columns for convenience of different transit types (each must be "Not possible", "Inconvenient", or "Convenient").
-* 5 columns for confidence in skills (each must be "Not Confident", "Somewhat", "Neutral", "Confident", or "Very Confident").
+* 1 column for convenience of different transit types (each must be "Not possible", "Inconvenient", or "Convenient").
+* 2 columns for confidence in skills (each must be "Not Confident", "Somewhat", "Neutral", "Confident", or "Very Confident").
 
 In cases where there are multiple columns (ie, availability, transit conveniences, etc), the columns must be in the same order as in `teams.csv`.
 
@@ -55,11 +55,11 @@ There should be one header row (which will be ignored), and every row thereafter
 
 The columns should be organized as follows:
 * 1 column for team name.
-* 70 columns for availability, where a 1 represents the team being available in that time slot and a 0 represents them being unavailable.
+* 168 columns for availability, where a 1 represents the team being available in that time slot and a 0 represents them being unavailable.
 * 4 columns for which team type (eg new, small coach presence, etc) this team is, where a 1 represents the team being that type and a 0 represents the team not being that type.
 * 1 column for how good/bad it would be for this team to get only one mentor (must be "Bad", "Neutral", or "Good")
-* 5 columns for how long each travel method would take, as an integer number of minutes.  If the team plans on working with their mentor(s) on the Berkeley campus, put in 0 for these columns.
-* 5 columns for how much the team wants the different skills (each must be "Not at all", "Somewhat", or "Very").
+* 1 column for how long each travel method would take, as an integer number of minutes.  If the team plans on working with their mentor(s) on the Berkeley campus, put in 0 for these columns.
+* 2 columns for how much the team wants the different skills (each must be a number from 1 to 5, with 1 as most requested).
 
 In cases where there are multiple columns (ie, availability, transit times, etc), the columns must be in the same order as in `mentors.csv`.
 

@@ -26,7 +26,7 @@ singleMentorLevels = ["Bad", "Neutral", "Good"] # request levels assigned to tea
 												# should be arranged from bad to good
 
 # Transit
-numTypesTransit = 5 # number of different types of transit we ask mentors / teams about
+numTypesTransit = 1 # number of different types of transit we ask mentors / teams about
 transitConvenienceLevels = ["Not possible", "Inconvenient", "Convenient"] # convenience levels mentors can put down for transit types 
 																		  # should be arranged from least to most convenient
 
@@ -34,7 +34,7 @@ transitConvenienceLevels = ["Not possible", "Inconvenient", "Convenient"] # conv
 numSkills = 2 # how many skills we ask mentors for confidence in / teams for how much they want
 skillConfidenceLevels = ["Not Confident", "Somewhat", "Neutral", "Confident", "Very Confident"] # confidence levels mentors can put down for skills
 																								# should be arranged from least to most confident
-skillRequestLevels = ["5", "4", "3", "2", "1"] # levels that teams can say they want mentors with a given school
+skillRequestLevels = ["5", "4", "3", "2", "1"] # levels that teams can say they want mentors with a given skill
 											   # should be arranged from from least to most requested
 
 
@@ -49,7 +49,7 @@ maxNumMentors = 2 # maximum number of mentors that can be assigned to a team
 
 # Availability overlap
 minMeetingTime = 60 # minimum number of minutes a mentor's / team's availabilities need to overlap in order to count
-totalMeetingTime = 90 # how many minutes per week we want mentors to be with their teams
+totalMeetingTime = 60 # how many minutes per week we want mentors to be with their teams
 singleOverlapValue = 10 # how much each minute of availability overlap between a team and mentor is valued
 pairOverlapValue = 2 # how much each minute of availability overlap between a team and *two* mentors is valued (on top of the value from each mentor individually)
 					 # note that the program calculates the amount of this overlap optimistically, ie ignoring travel time and the minimum meeting length
@@ -71,9 +71,9 @@ teamRequiredValue = 500000 # how much value to give if a mentor *must* be matche
 # Mentoring alone
 aloneComfortCosts = [1500, 1000, 500, 10, 1] # how much cost to incur for mentoring alone based on comfort level
 											 # note that the order of this must match that of aloneComfortLevels (from above)
-singleMentorCosts = [500, 0, -200]  # how much cost to incur if a team only has one mentor
-									# note that the order of this must match that of singleMentorValueLevels (from above)
-									# negative costs correspond to giving value if a team is only assigned one mentor
+singleMentorCosts = [50, 0, -20]  # how much cost to incur if a team only has one mentor
+								  # note that the order of this must match that of singleMentorValueLevels (from above)
+								  # negative costs correspond to giving value if a team is only assigned one mentor
 
 # Transit
 transitConvenienceWeights = [0, 0.6, 1] # how much the value of an overlap should be weighted based on convenience of transit required
@@ -81,10 +81,10 @@ transitConvenienceWeights = [0, 0.6, 1] # how much the value of an overlap shoul
 
 #Skills
 skillMatchValues = [[0, 0, 0, 0, 0],		# how much value to give depending on how confident a mentor is in a skill and how much a team wants it
-					[0, 15, 25, 40, 50],	# each subarray corresponds to a team request level, from least important to most
-					[0, 25, 50, 75, 100],	# each entry in a subarray corresponds to a mentor confidence level, from least to most
-                    [0, 50, 100, 150, 200],
-                    [0, 75, 150, 225, 300]]
+					[0, 20, 35, 55, 70],	# each subarray corresponds to a team request level, from least important to most
+					[0, 35, 70, 100, 130],	# each entry in a subarray corresponds to a mentor confidence level, from least to most
+                    [0, 70, 130, 200, 265],
+                    [0, 100, 200, 300, 400]]
 
 
 """
