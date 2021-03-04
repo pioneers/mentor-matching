@@ -135,3 +135,7 @@ Note that based on how the constraints are set up, there is nothing requiring ty
 ### TODOs
 
 * Calculate the amount of availability overlap between a team and two mentors in a less overly-optimistic way.
+
+* Put a cap on the amount of availability overlap that can be counted.
+
+* Expand the number of classifications for how good / bad it is for a team to have a single mentor
